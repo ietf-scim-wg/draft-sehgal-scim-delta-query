@@ -1,7 +1,7 @@
 ---
 title: "Delta Query "
-abbrev: "SCIM Cursor Pagination"
-docname: draft-ietf-scim-cursor-pagination-01
+abbrev: "SCIM Delta Query"
+docname: draft-sehgal-scim-delta-query-01
 category: std
 
 ipr: trust200902
