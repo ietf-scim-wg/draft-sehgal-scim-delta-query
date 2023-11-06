@@ -47,7 +47,7 @@ SCIM clients provision identity information such as Users, Groups and membership
 
 Without a set of end-to-end reconciliation processes, SCIM implementers cannot confidently say that there are no divergence-caused security incidents. Providing a mechanism to detect data divergence and reconciliation mechanism is of the utmost importance to avoid any authorization decisions being made with incorrect data. This data divergence detection may be used for reporting purposes or may be extended to either trigger provisioning of those resources in the target system or pulling changes from the target system into the source.
 
-This document proposes additions to the SCIM standard that can be implemented across SCIM service providers over time, allowing SCIM clients to build synchronization and reconciliation mechanisms that they can reuse across all SCIM service providers that support the capabilities proposed in this document. The logic for divergence detection as part of any synchronization or reconciliation mechanism is out of scope of this document and is left to the implementer. 
+This document proposes additions to the SCIM standard that can be implemented across SCIM service providers over time, allowing SCIM clients to build synchronization and reconciliation mechanisms. The logic for divergence detection as part of any synchronization or reconciliation mechanism is out of scope of this document and is left to the implementer. 
 
 # Notational Conventions
 
