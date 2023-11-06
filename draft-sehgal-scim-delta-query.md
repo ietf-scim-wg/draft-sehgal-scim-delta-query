@@ -105,7 +105,7 @@ isDeleted
 # Using Delta Query to track changes
 
 ## Obtaining the First Delta Token
-A client will typically prepare for establishing recurring delta query requests by first performing a full Scan on the SCIM service provider. The GET request used for the initial full Scan MUST include the deltaQuery parameter and MUST not include the deltaToken parameter. 
+A client will typically prepare for establishing recurring delta query requests by first performing a full Scan on the SCIM service provider. The GET request used for the initial full Scan MUST include the deltaQuery parameter and MUST NOT include the deltaToken parameter. 
 
 In response to the full scan query the server
  
@@ -260,7 +260,7 @@ The results of the query can be progressed through by repeating the original que
 
 ### Consistency Consideration while Paginating through Delta Query Responses
 
-Service providers MUST NOT prevent resources from being updated (locking resources) while implementing delta query. New items can be added or existing items can be removed or updated while paginating through the response of the delta queries. The result set will contain eventually consistent data, however some implementations may choose to enforce strongly consistent data. The delta query MUST guarantee that the records modified (created, updated, or deleted) after any query that generates a delta token are returned when that same delta token is provided back by the client.
+Service providers MUST NOT prevent resources from being updated (locking resources) while implementing delta query. New items can be added or existing items can be removed or updated while paginating through the response of the delta queries. The result set will contain eventually consistent data, however some implementations MAY choose to enforce strongly consistent data. The delta query MUST guarantee that the records modified (created, updated, or deleted) after any query that generates a delta token are returned when that same delta token is provided back by the client.
 
 ### Resource Representation in the Delta Query Response
 Newly created resources are represented in the delta query response using their standard representation. Updated resources are represented using their standard representation, and their current state is returned.
