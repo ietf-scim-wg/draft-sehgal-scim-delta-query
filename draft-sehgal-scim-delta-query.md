@@ -77,7 +77,7 @@ This simplistic solution can quickly iterate across all of the resources in the 
 ## Divergence Detection via Delta Scans
 A recurring set of delta Scans can be used to provide ongoing detection of of data divergence between source and destination systems. Each individual delta Scan will only retrieve data that has been modified after the issuance of the delta token value used by the SCIM client. Continuous successful delta Scans run over a given period of time allows for ongoing detection of data modified within that period. The process can be used to incrementally retrieve changes and identify and repair any divergences as needed, with only delta Scans being required after the first full Scan.
 
-A delta Scan can be done using the Delta Query functionality introduced in this document. The aim of these additions is to allow the client to instruct the service provider to only return the current state of objects that have changed (newly added, updated or deleted) since the issuance of the delta token provided by the client. 
+A delta Scan can be done using the Delta Query functionality introduced in this document. The aim of these additions is to allow the client to instruct the service provider to only return the current state of objects that have changed (newly added, updated or deleted) since the issuance of the delta token that was returned to the server by the client. 
 
 
 # Delta Query
