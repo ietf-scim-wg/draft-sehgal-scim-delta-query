@@ -164,11 +164,6 @@ In the above example request and response, the query used in the full Scan examp
 # Pagination 
 
 ## Using Cursor-based Pagination During a Full Scan
-//NOTE - Should we include an index-based pagination example as well, despite low adoption? 
-///////// RESPONSE Lets leave it for now. If audience asks for it we can include in the next iteration
-//NOTE - Do we even need examples of paginating the full Scan? 
-////////RESPONSE For completenes purposes I included it.
-
 When the total number of resources returned by the query is large enough, a paginated response may be required. In this scenario, a service provider supporting cursor-based pagination MAY return a value for the nextCursor attribute. The cursor can then be used by a client in a subsequent request to obtain the next page of results.    
 
 ~~~
