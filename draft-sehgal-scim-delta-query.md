@@ -263,10 +263,6 @@ The results of the query can be progressed through by repeating the original que
 Service providers MUST NOT prevent resources from being updated (locking resources) while implementing delta query. New items can be added or existing items can be removed or updated while paginating through the response of the delta queries. The result set will contain eventually consistent data, however some implementations may choose to enforce strongly consistent data. The delta query MUST guarantee that the records modified (created, updated, or deleted) after any query that generates a delta token are returned when that same delta token is provided back by the client.
 
 ### Resource Representation in the Delta Query Response
-//NOTE - We should establish a dedicated section here that has a bulleted list of rules similar to patch add/replace/remove in 7644. Should do the same elsewhere in doc where applicable.
-//NOTE - We should define what minimum representation is for a deleted resource - IMO it is just id and meta.isDeleted
-//NOTE - We should add rules for groups/group members..
-
 Newly created resources are represented in the delta query response using their standard representation. Updated resources are represented using their standard representation, and their current state is returned.
 Deleted instances MUST return common attribute id and complex attribute meta with sub attributes resourceType and meta.isDeleted attribute value with value True.
 
