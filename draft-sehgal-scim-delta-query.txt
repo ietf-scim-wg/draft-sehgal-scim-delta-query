@@ -101,8 +101,8 @@ Table of Contents
    The document describes additions to the SCIM standard to provide a
    scalable and accurate method of change detection that allows a SCIM
    client to retrieve the current state of all resources that have
-   changed since a prior point.  Some of the possible use cases where
-   this can be used is building identity reconciliation systems or
+   changed since a prior point in time.  Some of the possible use cases
+   where this can be used is building identity reconciliation systems or
    incremental synchronization systems where a client periodically pulls
    data from the server.  For example, synchronizing data from human
    capital management systems into a central identity management
