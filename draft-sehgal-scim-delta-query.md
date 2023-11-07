@@ -95,12 +95,12 @@ deltaToken | A string type that may be provided by the client to request only re
 The following attribute is added to the schema of urn:ietf:params:scim:api:messages:2.0:ListResponse.
 
 nextDeltaToken
-  : A string type that MUST be returned by the server on the last page during a delta query response. If the SCIM service provider supports delta query, this attribute MUST be returned by a when the query parameter deltaQuery is True OR a 400 series error must be returned //NOTE BE MORE SPECIFIC HERE. Values must only contain characters from the unreserved characters set defined in section 2.3 of [RFC3986]. 
+  : A string type that MUST be returned by the server on the last page during a delta query response. If the SCIM service provider supports delta query, this attribute MUST be returned by a when the query parameter deltaQuery is True. Values must only contain characters from the unreserved characters set defined in section 2.3 of [RFC3986]. 
 
 The following attribute is added to the sub-attributes of the common attribute "meta".
 
 isDeleted
-: A boolean type. This attribute MUST be returned and MUST have a value of True when the resource has been deleted from the SCIM service provider and is being returned as part of a delta query response. This attribute has a "returned" property value of "request" when the associated resource has not been deleted. //NOTE - Should be a part of a short section on deleted resources and associated behaviors, not just a new attribute
+: A boolean type. This attribute MUST be returned and MUST have a value of True when the resource has been deleted from the SCIM service provider and is being returned as part of a delta query response. This attribute has a "returned" property value of "request" when the associated resource has not been deleted.
 
 # Using Delta Query to track changes
 
