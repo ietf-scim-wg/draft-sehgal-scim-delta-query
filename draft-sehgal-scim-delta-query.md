@@ -435,11 +435,11 @@ Content-Type: application/scim+json
 
 The /ServiceProviderConfig resource defined in Section 4 of [RFC7644] facilitates discovery of SCIM service provider features. A SCIM Service provider implementing delta query SHOULD include the following additional attribute in JSON document returned by the /ServiceProviderConfig endpoint:
 
-   	  deltaQuery
+      deltaQuery
    	  : A complex type that indicates delta query configuration options.  OPTIONAL.
       supported  
       : A Boolean value specifying support of delta query.  REQUIRED.
-      deltaTokenTimeOut 
+      deltaTokenExpiry 
       : Non-negative integer specifying the maximum number minutes that a deltaToken is valid between delta Scan requests.  Clients waiting too long between subsequent delta scan requests may receive an invalid delta token error response. OPTIONAL.
       
 If the SCIM client issues a delta query to a SCIM service provider that does not support or implement delta query feature then SCIM service provider will respond with HTTP Status Code 501, Unsupported Feature - Delta Query. Server does not support delta query feature.
