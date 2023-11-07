@@ -124,8 +124,8 @@ Table of Contents
    does not meet the accuracy, efficiency or scalability requirements of
    many implementers.
 
-   With a set of end-to-end reconciliation processes, reduces the risk
-   of incorrect authorization decisions due to divergent states between
+   A set of end-to-end reconciliation processes, reduces the risk of
+   incorrect authorization decisions due to divergent states between
    client and server.  Providing a mechanism to detect data divergence
    and reconciliation mechanism is of the utmost importance to avoid any
    authorization decisions being made with incorrect data.  This data
