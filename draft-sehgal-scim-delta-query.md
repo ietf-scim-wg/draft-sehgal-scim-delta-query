@@ -381,7 +381,7 @@ For HTTP status code 400 (Bad Request) responses, the following detail error typ
 
 | scimType | Description | Applicability |
 invalidValue | The parameter deltaToken was provided without the deltaQuery parameter. Parameter "deltaToken" must be accompanied with deltaQuery parameter. OR Invalid value for "deltaToken" parameter. Value for "deltaToken" parameter must be the same as provided by the SCIM service provider in nextDeltaToken OR Invalid value for deltaQuery parameter. Value of "deltaQuery" parameter must be either true or false| GET (Section Delta Query Parameters of ([Delta Query Draft])), POST (Section Delta Query Using HTTP POST of ([Delta Query Draft]))|
-expiredDeltaToken | Delta Token has expired. Do not wait longer than deltaTokenExpiry (7 days) to request subsequent delta query requests.| GET (Section 3.4.2 of [RFC7644]), POST (Section Delta Query Using HTTP POST of ([Delta Query]))|
+expiredDeltaToken | Delta Token has expired. Do not wait longer than deltaTokenExpiry (40 minutes) to request subsequent delta query requests.| GET (Section 3.4.2 of [RFC7644]), POST (Section Delta Query Using HTTP POST of ([Delta Query]))|
 {: title="Delta Query Errors"}
 
 ## Filtering
