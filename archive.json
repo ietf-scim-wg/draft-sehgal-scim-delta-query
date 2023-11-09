@@ -1,0 +1,300 @@
+{
+  "magic": "E!vIA5L86J2I",
+  "timestamp": "2023-11-09T01:16:06.541728+00:00",
+  "repo": "ietf-scim-wg/draft-sehgal-scim-delta-query",
+  "labels": [
+    {
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    },
+    {
+      "name": "documentation",
+      "description": "Improvements or additions to documentation",
+      "color": "0075ca"
+    },
+    {
+      "name": "duplicate",
+      "description": "This issue or pull request already exists",
+      "color": "cfd3d7"
+    },
+    {
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "name": "good first issue",
+      "description": "Good for newcomers",
+      "color": "7057ff"
+    },
+    {
+      "name": "help wanted",
+      "description": "Extra attention is needed",
+      "color": "008672"
+    },
+    {
+      "name": "invalid",
+      "description": "This doesn't seem right",
+      "color": "e4e669"
+    },
+    {
+      "name": "question",
+      "description": "Further information is requested",
+      "color": "d876e3"
+    },
+    {
+      "name": "wontfix",
+      "description": "This will not be worked on",
+      "color": "ffffff"
+    }
+  ],
+  "issues": [
+    {
+      "number": 3,
+      "id": "I_kwDOKoD-Ec517w4G",
+      "title": "Add additional context to the text",
+      "url": "https://github.com/ietf-scim-wg/draft-sehgal-scim-delta-query/issues/3",
+      "state": "OPEN",
+      "author": "dhs-aws",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The first paragraph in the introduction introduces the idea that the mechanism can be used for change detection.  We should note that this proposed mechanism is optional and other mechanisms may exist in future updates to the SCIM spec (e.g. event based mechanisms using SETs) and non-SCIM based mechanisms.  This change is in recognition of the fact that not all deployments will use this specific mechanism if standardized.",
+      "createdAt": "2023-11-06T08:47:16Z",
+      "updatedAt": "2023-11-06T08:47:16Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 8,
+      "id": "I_kwDOKoD-Ec5188UN",
+      "title": "isDeleted is necessary, but should it be defined here?",
+      "url": "https://github.com/ietf-scim-wg/draft-sehgal-scim-delta-query/issues/8",
+      "state": "OPEN",
+      "author": "dhs-aws",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Should this spec introduce the concept of deletions?  I suggest keeping the specification as narrowly scoped as possible by removing this from the draft and introducing the concepts of deletion in a separate draft document.",
+      "createdAt": "2023-11-06T11:26:36Z",
+      "updatedAt": "2023-11-06T11:26:36Z",
+      "closedAt": null,
+      "comments": []
+    }
+  ],
+  "pulls": [
+    {
+      "number": 1,
+      "id": "PR_kwDOKoD-Ec5ebrCQ",
+      "title": "Update draft-sehgal-scim-delta-query.md",
+      "url": "https://github.com/ietf-scim-wg/draft-sehgal-scim-delta-query/pull/1",
+      "state": "OPEN",
+      "author": "ansg-aws",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Updated Doc Title",
+      "createdAt": "2023-11-02T13:21:32Z",
+      "updatedAt": "2023-11-02T13:22:19Z",
+      "baseRepository": "ietf-scim-wg/draft-sehgal-scim-delta-query",
+      "baseRefName": "main",
+      "baseRefOid": "1f3a27b77a0914b47afdd523bde653eeab772824",
+      "headRepository": "ansg-aws/draft-sehgal-scim-delta-query",
+      "headRefName": "patch-1",
+      "headRefOid": "1918b094f40ce75539d1007d18791230021dbd29",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 2,
+      "id": "PR_kwDOKoD-Ec5eqKmp",
+      "title": "Minor nit in the language",
+      "url": "https://github.com/ietf-scim-wg/draft-sehgal-scim-delta-query/pull/2",
+      "state": "MERGED",
+      "author": "dhs-aws",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Changed the phrasing slightly for clarity.",
+      "createdAt": "2023-11-06T08:41:15Z",
+      "updatedAt": "2023-11-07T14:57:22Z",
+      "baseRepository": "ietf-scim-wg/draft-sehgal-scim-delta-query",
+      "baseRefName": "main",
+      "baseRefOid": "348825e9fc9d9c9ab59de3c233305cd7603d6b6a",
+      "headRepository": "dhs-aws/draft-sehgal-scim-delta-query",
+      "headRefName": "patch-1",
+      "headRefOid": "addd8e6af80a75ce3ed7de1f3ffe35044264e85c",
+      "closedAt": "2023-11-07T14:57:22Z",
+      "mergedAt": "2023-11-07T14:57:22Z",
+      "mergedBy": "ansg-aws",
+      "mergeCommit": {
+        "oid": "467ae218c2ee0766827638427548d3bccc1c8fb4"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 4,
+      "id": "PR_kwDOKoD-Ec5erDIs",
+      "title": "Langauge update for incorrect authZ decisions",
+      "url": "https://github.com/ietf-scim-wg/draft-sehgal-scim-delta-query/pull/4",
+      "state": "OPEN",
+      "author": "dhs-aws",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Minor update to the language.",
+      "createdAt": "2023-11-06T10:56:58Z",
+      "updatedAt": "2023-11-06T10:56:58Z",
+      "baseRepository": "ietf-scim-wg/draft-sehgal-scim-delta-query",
+      "baseRefName": "main",
+      "baseRefOid": "348825e9fc9d9c9ab59de3c233305cd7603d6b6a",
+      "headRepository": "dhs-aws/draft-sehgal-scim-delta-query",
+      "headRefName": "patch-2",
+      "headRefOid": "1600d26dc90be864b9c7dc5efc394b7ee1692182",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 5,
+      "id": "PR_kwDOKoD-Ec5erMb2",
+      "title": "Remove inflammatory language",
+      "url": "https://github.com/ietf-scim-wg/draft-sehgal-scim-delta-query/pull/5",
+      "state": "OPEN",
+      "author": "dhs-aws",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Language may have been inflammatory, I removed the concerning language and replaced it.",
+      "createdAt": "2023-11-06T11:16:43Z",
+      "updatedAt": "2023-11-06T11:16:43Z",
+      "baseRepository": "ietf-scim-wg/draft-sehgal-scim-delta-query",
+      "baseRefName": "main",
+      "baseRefOid": "f0352ec2c6649357e886b1b436ce9bc083d77cf6",
+      "headRepository": "dhs-aws/draft-sehgal-scim-delta-query",
+      "headRefName": "patch-3",
+      "headRefOid": "e729cc94c3534a9735389fc84dff77bedb9023e9",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 6,
+      "id": "PR_kwDOKoD-Ec5erM6z",
+      "title": "Edits for clarity",
+      "url": "https://github.com/ietf-scim-wg/draft-sehgal-scim-delta-query/pull/6",
+      "state": "OPEN",
+      "author": "dhs-aws",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Removed unnecessary language.",
+      "createdAt": "2023-11-06T11:17:57Z",
+      "updatedAt": "2023-11-07T15:02:37Z",
+      "baseRepository": "ietf-scim-wg/draft-sehgal-scim-delta-query",
+      "baseRefName": "main",
+      "baseRefOid": "f0352ec2c6649357e886b1b436ce9bc083d77cf6",
+      "headRepository": "dhs-aws/draft-sehgal-scim-delta-query",
+      "headRefName": "patch-4",
+      "headRefOid": "376a40c51db71ec1398f8245d2a82098cf83a6e0",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOKoD-Ec5mZYgL",
+          "commit": {
+            "abbreviatedOid": "376a40c"
+          },
+          "author": "ansg-aws",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-11-07T15:02:37Z",
+          "updatedAt": "2023-11-07T15:02:37Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "id": "PR_kwDOKoD-Ec5erPR7",
+      "title": "Language update for clarity",
+      "url": "https://github.com/ietf-scim-wg/draft-sehgal-scim-delta-query/pull/7",
+      "state": "OPEN",
+      "author": "dhs-aws",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2023-11-06T11:24:22Z",
+      "updatedAt": "2023-11-06T11:24:22Z",
+      "baseRepository": "ietf-scim-wg/draft-sehgal-scim-delta-query",
+      "baseRefName": "main",
+      "baseRefOid": "f0352ec2c6649357e886b1b436ce9bc083d77cf6",
+      "headRepository": "dhs-aws/draft-sehgal-scim-delta-query",
+      "headRefName": "patch-6",
+      "headRefOid": "9909c2afb098a249533db52f7b0cd4a770b15f04",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 9,
+      "id": "PR_kwDOKoD-Ec5erRTd",
+      "title": "IETF-style MAY/MAY NOT",
+      "url": "https://github.com/ietf-scim-wg/draft-sehgal-scim-delta-query/pull/9",
+      "state": "OPEN",
+      "author": "dhs-aws",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "edited to correct capitalization in two areas.",
+      "createdAt": "2023-11-06T11:28:33Z",
+      "updatedAt": "2023-11-07T14:58:24Z",
+      "baseRepository": "ietf-scim-wg/draft-sehgal-scim-delta-query",
+      "baseRefName": "main",
+      "baseRefOid": "f0352ec2c6649357e886b1b436ce9bc083d77cf6",
+      "headRepository": "dhs-aws/draft-sehgal-scim-delta-query",
+      "headRefName": "patch-7",
+      "headRefOid": "2fa80793aec96be041d01ecd678cfcc1dd990c6b",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOKoD-Ec5mZV3L",
+          "commit": {
+            "abbreviatedOid": "2fa8079"
+          },
+          "author": "ansg-aws",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-11-07T14:58:24Z",
+          "updatedAt": "2023-11-07T14:58:24Z",
+          "comments": []
+        }
+      ]
+    }
+  ]
+}
