@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-11-28T01:19:03.133207+00:00",
+  "timestamp": "2023-11-30T01:17:58.347322+00:00",
   "repo": "ietf-scim-wg/draft-sehgal-scim-delta-query",
   "labels": [
     {
@@ -62,9 +62,17 @@
       "labels": [],
       "body": "The first paragraph in the introduction introduces the idea that the mechanism can be used for change detection.  We should note that this proposed mechanism is optional and other mechanisms may exist in future updates to the SCIM spec (e.g. event based mechanisms using SETs) and non-SCIM based mechanisms.  This change is in recognition of the fact that not all deployments will use this specific mechanism if standardized.",
       "createdAt": "2023-11-06T08:47:16Z",
-      "updatedAt": "2023-11-06T08:47:16Z",
+      "updatedAt": "2023-11-29T15:19:31Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "ccrvincent",
+          "authorAssociation": "NONE",
+          "body": "A list of benefits vs. \"(meta.lastModified GT $newestTimestampInLastQuery)\" would be useful, too.  The mechanism already exists for this functionality, this just seems to be a helper.",
+          "createdAt": "2023-11-29T15:18:34Z",
+          "updatedAt": "2023-11-29T15:19:31Z"
+        }
+      ]
     },
     {
       "number": 8,
@@ -78,9 +86,17 @@
       "labels": [],
       "body": "Should this spec introduce the concept of deletions?  I suggest keeping the specification as narrowly scoped as possible by removing this from the draft and introducing the concepts of deletion in a separate draft document.",
       "createdAt": "2023-11-06T11:26:36Z",
-      "updatedAt": "2023-11-06T11:26:36Z",
+      "updatedAt": "2023-11-29T21:13:06Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "ansg-aws",
+          "authorAssociation": "COLLABORATOR",
+          "body": "This isDeleted is different than soft/hard delete. isDeleted is used to get minimal information (e.g. IDs) about previously existed record forever while deleting the rest of the data and is only required for the purpose of Delta Queries. Soft Delete marks the item as deleted but actually doesn\u2019t delete the data immediately, leaving time for the client to restore it. Time until soft deletes fully cleanup the data is frequently configured to be ~2 weeks, but maybe there is value to override it. So it make sense to keep isDeleted as part of this spec.",
+          "createdAt": "2023-11-29T21:13:04Z",
+          "updatedAt": "2023-11-29T21:13:04Z"
+        }
+      ]
     }
   ],
   "pulls": [
