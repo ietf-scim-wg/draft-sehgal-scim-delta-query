@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-01-16T01:19:16.003824+00:00",
+  "timestamp": "2024-01-18T01:19:04.309692+00:00",
   "repo": "ietf-scim-wg/draft-sehgal-scim-delta-query",
   "labels": [
     {
@@ -97,6 +97,38 @@
           "updatedAt": "2023-11-29T21:13:04Z"
         }
       ]
+    },
+    {
+      "number": 11,
+      "id": "I_kwDOKoD-Ec58Qk_0",
+      "title": "Service Provider Config clarifications",
+      "url": "https://github.com/ietf-scim-wg/draft-sehgal-scim-delta-query/issues/11",
+      "state": "OPEN",
+      "author": "conro1108",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "In the Service Provider Configuration section, we describe 3 attributes `deltaQuery`, `supported`, and `deltaTokenExpiry` to be included in the JSON document returned by the /ServiceProviderConfig endpoint.\r\n\r\nLooking at the related example response, it has `supported` as an attribute of complex attr `deltaQuery` - it would be good to clarify if service providers should include these 3 attributes in the ServiceProviderConfig, or if they need to include a single `deltaQuery` attribute which has fields `supported` and `deltaTokenExpiry`",
+      "createdAt": "2024-01-16T19:44:16Z",
+      "updatedAt": "2024-01-16T19:49:15Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 12,
+      "id": "I_kwDOKoD-Ec58QqF3",
+      "title": "Filtering section stray paragraph",
+      "url": "https://github.com/ietf-scim-wg/draft-sehgal-scim-delta-query/issues/12",
+      "state": "OPEN",
+      "author": "conro1108",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "In the filtering section, the paragraph \r\n\r\n```\r\nWhen the client makes a subsequent deltaQuery request, it should query the same Service Provider endpoint with all query parameters and values being identical to the initial query issued in the previous delta scan or full scan with the exception of the deltatoken value which should be set to a nextDeltaToken value that was returned by Service Provider in a previous delta query response.\r\n```\r\n\r\nseems out of place to me. Would this make more sense in one of the earlier sections describing delta query usage in divergence detection? The advice seems quite generic and not specific to filtering",
+      "createdAt": "2024-01-16T19:53:07Z",
+      "updatedAt": "2024-01-16T19:53:07Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -313,6 +345,32 @@
           "comments": []
         }
       ]
+    },
+    {
+      "number": 10,
+      "id": "PR_kwDOKoD-Ec5kPCUp",
+      "title": "Minor editorial proposals",
+      "url": "https://github.com/ietf-scim-wg/draft-sehgal-scim-delta-query/pull/10",
+      "state": "OPEN",
+      "author": "conro1108",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Mostly removing \"type\" in cases where describing what type an attribute should be. IMO it's more readable and correct to say \"The nextDeltaToken is a string\" than to say \"The nextDeltaToken is a string type\"",
+      "createdAt": "2024-01-16T19:43:33Z",
+      "updatedAt": "2024-01-16T19:43:33Z",
+      "baseRepository": "ietf-scim-wg/draft-sehgal-scim-delta-query",
+      "baseRefName": "main",
+      "baseRefOid": "1a09b63c3ec0eba6f6021b1ba5b02ffe74a624a3",
+      "headRepository": "conro1108/draft-sehgal-scim-delta-query",
+      "headRefName": "patch-1",
+      "headRefOid": "a6ab0cbd5a0ba1416c3cb7485e76120f415ac37e",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
