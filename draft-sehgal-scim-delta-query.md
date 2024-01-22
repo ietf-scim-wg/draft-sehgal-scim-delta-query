@@ -75,7 +75,7 @@ An HTTP server that implements SCIM Protocol [RFC7644] and SCIM Schema [RFC7643]
 ## Divergence Detection via Full Scans
 A simplistic implementation of a divergence detection tool may perform a full comparison of data between source and destination systems containing identity data. To do this, the divergence detection tool can perform a full Scan of all resources in both systems and then perform the following checks. First it will evaluate if there are any resources (Users, Groups..) in one of the systems that are missing in the other one, and then it will evaluate if attribute values for any resources present in both the source and destination systems have different values.
 
-This simplistic solution can quickly iterate across all of the resources in the source and destination systems and perform detailed data comparison, providing the highest accuracy. However, the speed at which this can be performed will be limited by factors such as system capacity, scheduling algorithms, API page sizes, and throughput limits. This makes an approach that utilizes only full Scans too slow (hours/days) for datasets spanning millions of resources, causing delayed detection of any data divergence. For instance, a data divergence check for a directory with 10 million resources could require 3 hours to scan one of the systems, while divergence detection within 30 to 60 minutes would be more optimal. To address this challenge for larger datasets, the approach utilizing only full Scans can be amended with an additional set of recurring delta Scans that would identify divergence in recently modified resources.
+This simplistic solution can iterate across all of the resources in the source and destination systems and perform detailed data comparison, providing the highest accuracy. However, the speed at which this can be performed will be limited by factors such as system capacity, scheduling algorithms, API page sizes, and throughput limits. This makes an approach that utilizes only full Scans too slow (hours/days) for datasets spanning millions of resources, causing delayed detection of any data divergence. For instance, a data divergence check for a directory with 10 million resources could require 3 hours to scan one of the systems, while divergence detection within 30 to 60 minutes would be more optimal. To address this challenge for larger datasets, the approach utilizing only full Scans can be amended with an additional set of recurring delta Scans that would identify divergence in recently modified resources.
 
 ## Divergence Detection via Delta Scans
 A recurring set of delta Scans can be used to provide ongoing detection of of data divergence between source and destination systems. Each individual delta Scan will only retrieve data that has been modified after the issuance of the delta token value used by the SCIM client. Continuous successful delta Scans run over a given period of time allows for ongoing detection of data modified within that period. The process can be used to incrementally retrieve changes and identify and repair any divergences as needed, with only delta Scans being required after the first full Scan.
@@ -91,19 +91,19 @@ A Delta Query is a query performed on underlying SCIM resources that enables the
 The following table describes the URL query parameters for delta query requests:
 
 | Parameter | Description |
-deltaQuery | A boolean type that indicates that the client is requesting the server to execute a full scan or delta scan and return a delta token with its response.|
-deltaToken | A string type that may be provided by the client to request only records modified after the point represented by the delta token's value. The value of deltaToken MUST be treated as opaque by the client. Token values must follow the unreserved characters set defined in section 2.3 of [RFC3986].
+deltaQuery | A boolean that indicates that the client is requesting the server to execute a full scan or delta scan and return a delta token with its response.|
+deltaToken | A string that may be provided by the client to request only records modified after the point represented by the delta token's value. The value of deltaToken MUST be treated as opaque by the client. Token values must follow the unreserved characters set defined in section 2.3 of [RFC3986].
 {: title="Query Parameters"}
 
 The following attribute is added to the schema of urn:ietf:params:scim:api:messages:2.0:ListResponse.
 
 nextDeltaToken
-  : A string type that MUST be returned by the server on the last page during a delta query response. If the SCIM service provider supports delta query, this attribute MUST be returned by a when the query parameter deltaQuery is True. Values must only contain characters from the unreserved characters set defined in section 2.3 of [RFC3986].
+  : A string that MUST be returned by the server on the last page during a delta query response. If the SCIM service provider supports delta query, this attribute MUST be returned by a when the query parameter deltaQuery is True. Values must only contain characters from the unreserved characters set defined in section 2.3 of [RFC3986].
 
 The following attribute is added to the sub-attributes of the common attribute "meta".
 
 isDeleted
-: A boolean type. This attribute MUST be returned and MUST have a value of True when the resource has been deleted from the SCIM service provider and is being returned as part of a delta query response. This attribute has a "returned" property value of "request" when the associated resource has not been deleted.
+: A boolean. This attribute MUST be returned and MUST have a value of True when the resource has been deleted from the SCIM service provider and is being returned as part of a delta query response. This attribute has a "returned" property value of "request" when the associated resource has not been deleted.
 
 # Using Delta Query to track changes
 
@@ -439,7 +439,7 @@ Content-Type: application/scim+json
 The /ServiceProviderConfig resource defined in Section 4 of [RFC7644] facilitates discovery of SCIM service provider features. A SCIM Service provider implementing delta query SHOULD include the following additional attribute in JSON document returned by the /ServiceProviderConfig endpoint:
 
       deltaQuery
-   	  : A complex type that indicates delta query configuration options.  OPTIONAL.
+   	  : A complex attribute that indicates delta query configuration options.  OPTIONAL.
       supported
       : A Boolean value specifying support of delta query.  REQUIRED.
       deltaTokenExpiry
