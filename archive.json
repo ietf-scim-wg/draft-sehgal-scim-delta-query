@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-03-17T01:17:39.398349+00:00",
+  "timestamp": "2024-03-19T01:13:43.708255+00:00",
   "repo": "ietf-scim-wg/draft-sehgal-scim-delta-query",
   "labels": [
     {
@@ -55,15 +55,15 @@
       "id": "I_kwDOKoD-Ec517w4G",
       "title": "Add additional context to the text",
       "url": "https://github.com/ietf-scim-wg/draft-sehgal-scim-delta-query/issues/3",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "dhs-aws",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "The first paragraph in the introduction introduces the idea that the mechanism can be used for change detection.  We should note that this proposed mechanism is optional and other mechanisms may exist in future updates to the SCIM spec (e.g. event based mechanisms using SETs) and non-SCIM based mechanisms.  This change is in recognition of the fact that not all deployments will use this specific mechanism if standardized.",
       "createdAt": "2023-11-06T08:47:16Z",
-      "updatedAt": "2023-11-29T15:19:31Z",
-      "closedAt": null,
+      "updatedAt": "2024-03-17T11:37:02Z",
+      "closedAt": "2024-03-17T11:37:02Z",
       "comments": [
         {
           "author": "ccrvincent",
@@ -71,6 +71,13 @@
           "body": "A list of benefits vs. \"(meta.lastModified GT $newestTimestampInLastQuery)\" would be useful, too.  The mechanism already exists for this functionality, this just seems to be a helper.",
           "createdAt": "2023-11-29T15:18:34Z",
           "updatedAt": "2023-11-29T15:19:31Z"
+        },
+        {
+          "author": "ansg-aws",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Agreed, great callout. Will include in the next version of the draft.",
+          "createdAt": "2024-03-17T11:36:55Z",
+          "updatedAt": "2024-03-17T11:36:55Z"
         }
       ]
     },
@@ -103,32 +110,48 @@
       "id": "I_kwDOKoD-Ec58Qk_0",
       "title": "Service Provider Config clarifications",
       "url": "https://github.com/ietf-scim-wg/draft-sehgal-scim-delta-query/issues/11",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "conro1108",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "In the Service Provider Configuration section, we describe 3 attributes `deltaQuery`, `supported`, and `deltaTokenExpiry` to be included in the JSON document returned by the /ServiceProviderConfig endpoint.\r\n\r\nLooking at the related example response, it has `supported` as an attribute of complex attr `deltaQuery` - it would be good to clarify if service providers should include these 3 attributes in the ServiceProviderConfig, or if they need to include a single `deltaQuery` attribute which has fields `supported` and `deltaTokenExpiry`",
       "createdAt": "2024-01-16T19:44:16Z",
-      "updatedAt": "2024-01-16T19:49:15Z",
-      "closedAt": null,
-      "comments": []
+      "updatedAt": "2024-03-17T11:38:44Z",
+      "closedAt": "2024-03-17T11:37:45Z",
+      "comments": [
+        {
+          "author": "ansg-aws",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Agreed, will definitely clarify in next version of the document",
+          "createdAt": "2024-03-17T11:38:43Z",
+          "updatedAt": "2024-03-17T11:38:43Z"
+        }
+      ]
     },
     {
       "number": 12,
       "id": "I_kwDOKoD-Ec58QqF3",
       "title": "Filtering section stray paragraph",
       "url": "https://github.com/ietf-scim-wg/draft-sehgal-scim-delta-query/issues/12",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "conro1108",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "In the filtering section, the paragraph \r\n\r\n```\r\nWhen the client makes a subsequent deltaQuery request, it should query the same Service Provider endpoint with all query parameters and values being identical to the initial query issued in the previous delta scan or full scan with the exception of the deltatoken value which should be set to a nextDeltaToken value that was returned by Service Provider in a previous delta query response.\r\n```\r\n\r\nseems out of place to me. Would this make more sense in one of the earlier sections describing delta query usage in divergence detection? The advice seems quite generic and not specific to filtering",
       "createdAt": "2024-01-16T19:53:07Z",
-      "updatedAt": "2024-01-16T19:53:07Z",
-      "closedAt": null,
-      "comments": []
+      "updatedAt": "2024-03-17T11:48:46Z",
+      "closedAt": "2024-03-17T11:48:29Z",
+      "comments": [
+        {
+          "author": "ansg-aws",
+          "authorAssociation": "COLLABORATOR",
+          "body": "This is actually specific to filtering. This point indicates that the filtering parameters applied to the delta query should not change within subsequent delta queries. But will add additional detail to clarify more in next version of the document.",
+          "createdAt": "2024-03-17T11:48:45Z",
+          "updatedAt": "2024-03-17T11:48:45Z"
+        }
+      ]
     }
   ],
   "pulls": [
