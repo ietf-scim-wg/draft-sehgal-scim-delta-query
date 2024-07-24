@@ -1,7 +1,7 @@
 ---
 title: "SCIM Delta Query"
 abbrev: "SCIM Delta Query"
-docname: draft-sehgal-scim-delta-query-01
+docname: draft-sehgal-scim-delta-query-latest
 category: std
 
 ipr: trust200902
