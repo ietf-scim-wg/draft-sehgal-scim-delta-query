@@ -19,469 +19,654 @@ author:
     name: Anjali Sehgal
     organization: Amazon Web Services
     email: anjalisg@amazon.com
-    role: editor
    -
     name: Danny Zollner
     organization: Microsoft
-    email: zollnerd@microsoft.com
-
-
+    email: danny.zollner@microsoft.com
+    role: editor
 
 normative:
-  RFC3986:
   RFC7643:
   RFC7644:
+  RFC8792:
 
-informative:
+informative: 
 
 
---- abstract
+--- abstract 
 
-This document defines extensions to the System for Cross-domain Identity Management (SCIM) standard [RFC7643] [RFC7644] to enable incremental retrieval of resources that have been updated or deleted in a SCIM service provider. This allows for more efficient interactions between SCIM clients and service providers and addresses problems that have inhibited large-scale implementation of use cases such as synchronization, entropy detection, and identity reconciliation.
-
+This document defines extensions to the SCIM 2.0 protocol that enable clients to poll service providers for changes that have occurred since a delta (or watermark) token was issued by the service provider. 
 
 --- middle
 
 # Introduction
 
-The document describes additions to the SCIM standard to provide a scalable and accurate method of change detection that allows a SCIM client to retrieve the current state of all resources that have changed since a prior point in time. Some of the possible use cases where this can be used is building identity reconciliation systems or incremental synchronization systems where a client periodically pulls data from the server. For example, synchronizing data from human capital management systems into a central identity management service.
+Adoption of SCIM 2.0 has trended strongly in favor of "push" model implementations where SCIM clients push data to SCIM service providers. Scenarios reliant on a client regularly retrieving, or "pulling", data regarding a large number of resources from a service provider have faced challenges at scale. One of the challenges facing SCIM client implementers when trying to retrieve data from service providers is that there are limited options to improve efficiency by only retrieving resources that have changed since they were last observed by the client. ETags and the SCIM meta.lastModified attribute are sometimes considered as options here, but both have limitations and have not seen widespread adoption for use in tracking changes in SCIM. 
 
-SCIM clients provision identity information such as Users, Groups and memberships to SCIM service providers that is then used for authorization decisions when attempts to access resources occur. Potential synchronization inaccuracies could lead to data divergence between the SCIM client and SCIM service provider. Undetected diverging data between a SCIM client and SCIM service provider can lead to undesirable authorization decisions. For instance, an undetected failure to synchronize group membership removal between a SCIM client and a SCIM service provider can lead to access being incorrectly granted to an application that should no longer be allowed. The SCIM standard does not provide any guidance for performing ongoing incremental data reconciliation or synchronization, and the existing functionality in the SCIM standard does not meet the accuracy, efficiency or scalability requirements of many implementers.
+This document aims to alleviate the efficiency problems related to not being able to omit unchanged resources from query responses by introducing extensions to the SCIM 2.0 protocol functionality to query for responses that only contain SCIM resources that have changed since an earlier time. The concept of retrieving only new changes exists in numerous other APIs and databases, but does not exist in the core SCIM 2.0 specifications. By improving SCIM's functionality in this area, scenarios reliant on clients pulling large amounts of data on a regular basis can be made significantly more efficient, lowering resource consumption for service providers and clients to return and parse query responses, respectively.
 
-A set of end-to-end reconciliation processes, reduces the risk of incorrect authorization decisions due to divergent states between client and server. Providing a mechanism to detect data divergence and reconciliation mechanism is of the utmost importance to avoid any authorization decisions being made with incorrect data. This data divergence detection may be used for reporting purposes or may be extended to either trigger provisioning of those resources in the target system or pulling changes from the target system into the source.
-
-This document proposes additions to the SCIM standard that can be implemented across SCIM service providers over time, allowing SCIM clients to build synchronization and reconciliation mechanisms that they can reuse across all SCIM service providers that support the capabilities proposed in this document. The logic for divergence detection as part of any synchronization or reconciliation mechanism is out of scope of this document and is left to the implementer.
-
-# Notational Conventions
+## Notational Conventions
 
 {::boilerplate bcp14-tagged}
 
-# Delta Query Usage in Divergence Detection
-
-## Terminology
-
-Full Scan - Retrieval of the current state of all resources that exist without providing a delta token or timestamp-based restriction on which resources should be returned. This may be a request such as GET /Users to retrieve all User resources, GET (baseurl)/ to retrieve all resources regardless of type, or a query with a filter such as GET /Users?filter=department eq "Accounting".
-
-Delta Scan - Retrieval of the current state of all resources modified (created, updated, deleted) since a previous full or delta Scan that returned a delta token.
-
-Delta Token - An opaque artifact generated by the server and provides a point of reference that can be used by the issuing SCIM service provider to identify a point after which modified (created, updated or deleted) resources should be returned.
-
-SCIM Client -
-An HTTP client that initiates SCIM Protocol [RFC7644] requests and receives responses.
-
-SCIM Service Provider -
-An HTTP server that implements SCIM Protocol [RFC7644] and SCIM Schema [RFC7643].
-
-## Divergence Detection via Full Scans
-A simplistic implementation of a divergence detection tool may perform a full comparison of data between source and destination systems containing identity data. To do this, the divergence detection tool can perform a full Scan of all resources in both systems and then perform the following checks. First it will evaluate if there are any resources (Users, Groups..) in one of the systems that are missing in the other one, and then it will evaluate if attribute values for any resources present in both the source and destination systems have different values.
-
-This simplistic solution can iterate across all of the resources in the source and destination systems and perform detailed data comparison, providing the highest accuracy. However, the speed at which this can be performed will be limited by factors such as system capacity, scheduling algorithms, API page sizes, and throughput limits. This makes an approach that utilizes only full Scans too slow (hours/days) for datasets spanning millions of resources, causing delayed detection of any data divergence. For instance, a data divergence check for a directory with 10 million resources could require 3 hours to scan one of the systems, while divergence detection within 30 to 60 minutes would be more optimal. To address this challenge for larger datasets, the approach utilizing only full Scans can be amended with an additional set of recurring delta Scans that would identify divergence in recently modified resources.
-
-## Divergence Detection via Delta Scans
-A recurring set of delta Scans can be used to provide ongoing detection of of data divergence between source and destination systems. Each individual delta Scan will only retrieve data that has been modified after the issuance of the delta token value used by the SCIM client. Continuous successful delta Scans run over a given period of time allows for ongoing detection of data modified within that period. The process can be used to incrementally retrieve changes and identify and repair any divergences as needed, with only delta Scans being required after the first full Scan.
-
-A delta Scan can be done using the Delta Query functionality introduced in this document. The aim of these additions is to allow the client to instruct the service provider to only return the current state of objects that have changed (newly added, updated or deleted) since the issuance of the delta token provided by the client.
+This document utilizes line folding within JSON examples using a single backslash ('\') character as outlined in [RFC8792]. 
 
 
-# Delta Query
-A Delta Query is a query performed on underlying SCIM resources that enables the client to discover newly created, updated, or deleted resources without performing a full Scan from the server. This approach uses a delta token generated by a SCIM service provider. The delta token is an opaque artifact, or "watermark". It provides a point of reference that can be used by the issuing SCIM service provider to identify a point after which modified (created, updated or deleted) resources should be returned.
+# Definitions
 
-## Query Parameters and Response Attributes
+Delta Token
+: An opaque value issued by the SCIM service provider that provides a point of reference for the service provider to later return representations of resources that were changed after the point that the token's value references. 
 
-The following table describes the URL query parameters for delta query requests:
+Change / Changed Resource
+: A SCIM resource that has been created, deleted, or updated. 
 
-| Parameter | Description |
-deltaQuery | A boolean that indicates that the client is requesting the server to execute a full scan or delta scan and return a delta token with its response.|
-deltaToken | A string that may be provided by the client to request only records modified after the point represented by the delta token's value. The value of deltaToken MUST be treated as opaque by the client. Token values must follow the unreserved characters set defined in section 2.3 of [RFC3986].
-{: title="Query Parameters"}
+# Overview
 
-The following attribute is added to the schema of urn:ietf:params:scim:api:messages:2.0:ListResponse.
+The delta query functionality defined in this document is intended to function as follows:
+
+* The SCIM client obtains a delta token from a SCIM service provider.
+* The SCIM client makes a query against the SCIM service provider that contains the delta token.
+* The SCIM service provider responds with all resources that match the query parameters and have changed since the provided delta token was issued.
+* The SCIM service provider includes a new delta token with the final page of results it returns.
+* The SCIM client then optionally uses the newly provided delta token to repeat this process at a future time.
+
+# Delta Query Components
+
+This document defines extensions to existing schemas defined in the SCIM 2.0 specifications [RFC7643] and [RFC7644] and introduces endpoints, query parameters and protocol elements.  
+
+## New Path Extension Endpoints
+
+This document defines a set of extensions to the list of SCIM endpoints in {{Section 3.2 of RFC7644}}. The following endpoints are added to the list:
+
+|Resource|Endpoint|Operations|Description|
+Delta Token|\[prefix\]/.deltaToken|GET|Acquire a delta token.|
+Delta Query|\[prefix\]/.delta|POST|Search from system root or within a resource endpoint for resources that have changed.|
+
+## Delta Tokens
+
+Delta tokens may be returned from HTTP requests to the /.deltaToken path extension preceded by a SCIM resource endpoint (e.g.: /Users) or the server root. Delta tokens can also be returned as part of the service provider's response to a query redeeming another delta token.
+
+Delta tokens provided in response to /.deltaToken requests against the server root MUST be valid for delta query requests made against all resource types on the service provider that support delta query. Delta tokens provided in response to a /.deltaToken request against a specific SCIM resource endpoint are only required to be valid for requests made against that specific resource endpoint. 
+
+Response to /.deltaToken requests MUST be identified using the following URI: "urn:ietf:params:scim:api:messages:2.0:delta:token". The following single-valued attributes are defined for responses:
+
+value
+: A string value containing a delta token.  REQUIRED.
+
+expiry
+: A dateTime value representing the time that the delta token value will be valid until. Service providers SHOULD attempt to provide an accurate expiry value. Service providers MAY have implementation-specific logic that invalidates delta tokens prior to the provided expiry time.  RECOMMENDED.  
+
+### Acquiring an initial delta token
+
+A client wishing to obtain an initial delta token from a service provider that supports delta query can make a GET request to the /.deltaToken endpoint, as shown in the below example:
+
+~~~
+GET Users/.deltaToken
+Host: example.com
+Accept: application/scim+json
+Authorization: Bearer foo
+~~~
+
+The service provider's response would return a token similar to the following example:
+
+~~~
+HTTP/1.1 200 OK
+Content-Type: application/scim+json
+
+{
+    "schemas":"urn:ietf:params:scim:api:messages:2.0:delta:token",
+    "value":"eyJkZWx0YVRva2VuIjoiQVJkZmF",
+    "expiry":"2019-06-25T06:00:00Z"
+}
+~~~
+
+## ListResponse Schema Extension
+
+This document adds the following single-valued attribute to the "urn:ietf:params:scim:api:messages:2.0:ListResponse" schema defined in {{Section 3.4.2 of RFC7644}}.
 
 nextDeltaToken
-  : A string that MUST be returned by the server on the last page during a delta query response. If the SCIM service provider supports delta query, this attribute MUST be returned by a when the query parameter deltaQuery is True. Values must only contain characters from the unreserved characters set defined in section 2.3 of [RFC3986].
+: A complex type representing the next delta token issued by the service provider. The sub-attributes of nextDeltaToken are "value" and "expiry" and carry the same descriptions and requirements as the matching attributes defined in the urn:ietf:params:scim:api:messages:2.0:delta:token schema in the Delta Tokens section of this document. 
 
-The following attribute is added to the sub-attributes of the common attribute "meta".
+The nextDeltaToken attribute is included in the response to a query made with another delta token. The value of a delta token returned in this attribute MUST reference the point at which the final page of changed resources was returned by the service provider. This attribute MUST NOT be returned prior to the final page of changed resources and MUST be returned on the final page.
 
-isDeleted
-: A boolean. This attribute MUST be returned and MUST have a value of True when the resource has been deleted from the SCIM service provider and is being returned as part of a delta query response. This attribute has a "returned" property value of "request" when the associated resource has not been deleted.
+## ServiceProviderConfig
 
-# Using Delta Query to track changes
+This document adds the following complex attribute to the ServiceProviderConfig resource defined in {{Section 4 of RFC7644}}. 
 
-## Obtaining the First Delta Token
-A client will typically prepare for establishing recurring delta query requests by first performing a full Scan on the SCIM service provider. The GET request used for the initial full Scan MUST include the deltaQuery parameter and MUST not include the deltaToken parameter.
+DeltaQuery
+: A complex attribute that indicates advertised delta query configuration options.  REQUIRED.
 
-In response to the full scan query the server
+    supported
+    : A Boolean type indicating if the service provider supports delta query.  REQUIRED.
 
-1. MUST return the resources that currently exist in the collection. Resources that have been created and deleted prior to the initial full scan query won't be returned. Resources returned will represent the latest state of the resource at the time processing of the request.
-2. MUST Return the nextDeltaToken on the last page of the full scan response.
+    deltaTokenExpiry
+    : A positive integer specifying the maximum number of seconds that a delta token is anticipated to be accepted by the service provider after being issued. Service providers that do not provide values for the "expiry" delta token attribute MUST advertise an estimated delta token lifetime in this attribute. Service providers that do not have a globally consistent lifetime for issued delta tokens SHOULD use the "expiry" value on each delta token instead.  OPTIONAL.
 
-~~~
-GET Users?deltaQuery&count=50
-Host: example.com
-Accept: application/scim+json
-Authorization: Bearer U8YJcYYRMjbGeepD
+    supportedResources
+    : A multi-valued string type indicating what resources on the service provider support returning changes via delta query. Values MUST be either 'ServerRoot' or names of resource types that exist on the service provider, e.g., 'User' or 'Group'.  OPTIONAL.
 
-HTTP/1.1 200 OK
-Content-Type: application/scim+json
-{
-  "totalResults":45,
-  "itemsPerPage":50,
-  "nextDeltaToken": "VTHKLOUTREO",
-  "schemas": ["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
-  "Resources": [{
-    ...
-  }]
-}
-~~~
+# Delta Query Protocol
 
-## Using a Delta Token to Perform a Delta Scan
+## Delta Query Requests
+A client can use a previously obtained delta token to request information about changes that have occurred to the service provider's identity data since the delta token was issued. Clients attempting to make a delta query request MUST use the HTTP POST verb combined with the "/.delta" path extension. service providers MAY implement support for delta query requests against only certain resource types. Service providers MUST allow delta query requests to be made against resource endpoints (e.g.: /Users) that support delta query, and MAY allow requests to be made against the root of the server. The "/.delta" path extension MAY be appended to the end of a valid SCIM resource URL or the SCIM server root. For example:
 
-After a full Scan, the nextDeltaToken value returned by the service provider may be used by the client to perform a delta Scan, querying for resources modified since the issuance of the delta token. The GET request used for the delta Scan MUST include the deltaQuery parameter and MUST include the deltaToken parameter.
+/Users/.delta
 
-In response to the delta scan query the server
+\<baseUrl\>/.delta
 
-1. MUST Return the resources modified (created, updated or deleted) after the point represented by the delta token's value. The resources returned are represented in the response using their standard representation and reflect their current state.
-2. MUST Return the nextDeltaToken on the last page of the delta scan response.
+POST requests to /.delta MUST be identified using the URI "urn:ietf:params:scim:api:messages:2.0:delta:request". The schema of this query format includes the attributes defined in {{Section 3.4.3 of RFC7644}} for the urn:ietf:params:scim:api:messages:2.0:SearchRequest schema, any additional attributes added to the SearchRequest schema by other future SCIM 2.0 specifications, and the following additional single-valued attribute:
 
-~~~
-GET Users?deltaQuery&deltaToken=VTHKLOUTREO&count=50
-Host: example.com
-Accept: application/scim+json
-Authorization: Bearer U8YJcYYRMjbGeepD
+deltaToken
+: The string value of a delta token previously issued by the service provider. The delta token value provided by the client MUST remain the same while paging through a response that extends across more than one page of results.  REQUIRED.
 
-HTTP/1.1 200 OK
-Content-Type: application/scim+json
-{
-  "totalResults":13,
-  "itemsPerPage":50,
-  "nextDeltaToken": "OPUTREWSFDE",
-  "schemas": ["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
-  "Resources": [{
-    ...
-  }]
-}
-~~~
+Service providers responding to a delta query request MUST return all resources that meet the following criteria:
 
-In the above example request and response, the query used in the full Scan example was repeated with the addition of the deltaToken parameter and the value of the delta token provided in the response to the full Scan via the nextDeltaToken attribute.
+* Changed since the provided delta token was issued
+* Match all applied query filters
+* The client is authorized to read the resource
 
-# Pagination
+Services providers SHALL evaluate all query parameters specified in a delta query request against the attribute values of the underlying SCIM resource and not the attributes or values of any delta query API message schemas. 
 
-## Using Cursor-based Pagination During a Full Scan
-When the total number of resources returned by the query is large enough, a paginated response may be required. In this scenario, a service provider supporting cursor-based pagination MAY return a value for the nextCursor attribute. The cursor can then be used by a client in a subsequent request to obtain the next page of results.
+## Delta Query Responses
 
-~~~
-GET Users?deltaQuery&count=50
-Host: example.com
-Accept: application/scim+json
-Authorization: Bearer U8YJcYYRMjbGeepD
+This document defines a new "delta query response" SCIM message format that is returned by the service provider in the "Resources" collection in a ListResponse message. The delta query response message schema is a wrapper that contains full or partial representations of changed SCIM resources. Delta query responses consist of information about the change as well as a representation of the changed resource in either of two formats. The "operations" attribute contains one or more complex objects that represent changes to specific attributes on the resource, whereas the "data" attribute can be used to provide a traditional SCIM representation of the changed resource without specifying what attributes have changed. Delta query responses MUST be identified using the following URI: "urn:ietf:params:scim:api:messages:2.0:delta:response". 
 
-HTTP/1.1 200 OK
-Content-Type: application/scim+json
-{
-  "totalResults":457,
-  "itemsPerPage":50,
-  "nextCursor": "CVHNJKUYFRT",
-  "schemas": ["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
-  "Resources": [{
-    ...
-  }]
-}
-~~~
+The following single-valued attributes are defined in this schema:
 
-When the client is ready to retrieve the next page of results it SHOULD query the same service provider endpoint with all query parameters and values remaining identical to the initial query with the exception of the cursor parameter and its value.
+resourceType
+: The resource type of the changed resource represented by the delta.  REQUIRED.
 
-~~~
-GET Users?deltaQuery&count=50&cursor=CVHNJKUYFRT
-Host: example.com
-Accept: application/scim+json
-Authorization: Bearer U8YJcYYRMjbGeepD
+changeType
+: A string representing what type of change has occurred.  Allowed values are "create", "update", and "delete".  REQUIRED.
 
-HTTP/1.1 200 OK
-Content-Type: application/scim+json
-{
-  "totalResults":457,
-  "itemsPerPage":50,
-  "previousCursor:"CVHNJKUYFRT",
-  "nextDeltaToken":VTHKLOUTREO",
-  "schemas": ["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
-  "Resources": [{
-    ...
-  }]
-}
-~~~
+changedResourceId
+: A string representing the 'id' value of the changed resource.  REQUIRED.
 
-## Paginating a Delta Scan Response
+data
+: A complex object containing the changed resource.  REQUIRED if "operations" is null. MUST NOT be returned if "operations" is not null. 
 
-### Cursor-based Pagination
-If the number or resources that were modified (Created, Updated, or Deleted) after the issuance of the delta token used in a delta Scan is large, a service provider supporting cursor-based-pagination MAY paginate the response and return a value for the nextCursor attribute. When the client is ready to retrieve the next page of results it SHOULD query the same service provider endpoint with all query parameters and values remaining identical to the initial query with the exception of the cursor parameter and its value.
 
-The below example request and response shows the first request to redeem a delta token as part of a delta Scan.
+The following multi-valued attribute is defined in this schema:
 
-~~~
-GET Users?deltaQuery&deltaToken=VTHKLOUTREO
-Host: example.com
-Accept: application/scim+json
-Authorization: Bearer U8YJcYYRMjbGeepD
+operations
+: A complex object representing the attribute-level changes that have occurred on the changed resource. REQUIRED if "data" is null". MUST NOT be returned if "data" is not null. This attribute has the following sub-attributes:
 
-HTTP/1.1 200 OK
-Content-Type: application/scim+json
-{
-  "totalResults":8649,
-  "itemsPerPage":100,
-  "nextCursor": "CVHNJKUYFRT",
-  "schemas": ["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
-  "Resources": [{
-    ...
-  }]
-}
-~~~
+    op
+    : A string that states what type of update has occurred. The possible values are aligned to the SCIM PATCH semantics defined in {{Section 3.5.2 of RFC7644}}. Allowed values are "add", "replace", and "remove".  REQUIRED.
 
-In the response portion of the above example, the response is limited in size by the service provider even though the client did not request a paginated response.
+    path
+    : A string following the SCIM attribute notation and attribute path rules, representing the attribute that was updated. Supports attribute path filters as defined in {{Section 3.5.2 of RFC7644}}.  OPTIONAL.
 
-In the below example, the client uses the cursor value obtained in the previous example to retrieve the next page of results.
+    value
+    : The new value(s) that the attribute or attribute value(s) specified in the path sub-attribute have been updated to contain.  REQUIRED when the value of "op" is "add" or "replace". MUST NOT be returned if the value of "op" is "remove".
 
-~~~
-GET Users?deltaQuery&deltaToken=VTHKLOUTREO&cursor=CVHNJKUYFRT
-Host: example.com
-Accept: application/scim+json
-Authorization: Bearer U8YJcYYRMjbGeepD
+Service providers SHOULD NOT return multiple delta query responses for the same changed resource in the same page of results. When returning attribute changes via the "operations" attribute, service providers MAY distribute attribute changes for a single changed resource between multiple delta query responses across multiple pages. Splitting attribute changes across multiple pages allows for resources with multi-valued attributes such as the group resource's "members" attribute to return all changes while maintaining smaller and more consistent page sizes.     
+ 
+### Change Types
 
-HTTP/1.1 200 OK
-Content-Type: application/scim+json
-{
-  "totalResults":8649,
-  "itemsPerPage":63,
-  "prevCursor": "CVHNJKUYFRT",
-  "nextDeltaToken": ALEMQPXNAZX",
-  "schemas": ["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
-  "Resources": [{
-    ...
-  }]
-}
-~~~
-The results of the query can be progressed through by repeating the original query while continuously updating the cursor value. When returning the last page of results, the service provider will omit the nextCursor value and will include the nextDeltaToken value.
+Delta query responses are categorized into one of three change types. 
 
-### Consistency Consideration while Paginating through Delta Query Responses
+#### Create
 
-Service providers MUST NOT prevent resources from being updated (locking resources) while implementing delta query. New items can be added or existing items can be removed or updated while paginating through the response of the delta queries. The result set will contain eventually consistent data, however some implementations may choose to enforce strongly consistent data. The delta query MUST guarantee that the records modified (created, updated, or deleted) after any query that generates a delta token are returned when that same delta token is provided back by the client.
+Newly created resources MUST be represented by a delta query response with a "changeType" of "Create". Delta query responses of type "Create" MUST return either the the full current state of the resource or the state of the resource at the time of creation in the "data" attribute. 
 
-### Resource Representation in the Delta Query Response
-Newly created resources are represented in the delta query response using their standard representation. Updated resources are represented using their standard representation, and their current state is returned.
-Deleted instances MUST return common attribute id and complex attribute meta with sub attributes resourceType and meta.isDeleted attribute value with value True.
+Newly created resources that were created with or updated after creation to have a large amount of data MAY return a "Create" operation followed by one or more "Update" operations to provide an accurate representation of the current state of the resource split across multiple delta query response messages.
 
-#### Minimal Representation for a Deleted Resource
+#### Update
 
-Following is a non-normative example of the minimal required SCIM representation in JSON format for a deleted resource.
+Updated resources MUST be represented by a delta query response with a "changeType" of "Update". Service providers MAY return either the full current state of the updated resource via the "data" attribute, or only the changed attributes via the "operations" attribute. Service providers SHOULD return only changed attributes when possible. 
+
+#### Delete
+
+Deleted resources MUST be represented by a delta query response with a "changeType" of "Delete". Deleted resources SHALL NOT have a value in either "data" or "operations". 
+
+### Operations 
+
+The structure of the "operations" attribute in the delta query response message is based on the SCIM PATCH semantics defined in {{Section 3.5.2 of RFC7644}}. The rules defined in this section and its subsections apply to the "operations" attribute's "op", "path", and "value" sub-attributes. 
+
+#### Add
+
+Using the "add" op can represent new values being added to any attribute, and values being either added or replaced on single-valued attributes. Examples include:
+
+##### Adding or replacing a value to a single-valued attribute
 
 ~~~
 {
-  "schemas": ["urn:ietf:params:scim:schemas:core:2.0:User"],
-  "id": "2819c223-7f76-453a-919d-413861904646",
-  "meta": {
-    "resourceType": "User",
-    "isDeleted": true
-  }
-}
-~~~
-#### Full Representation for a Deleted Resource
-
-Following is a non-normative example of the fully populated SCIM representation in JSON format for a deleted resource.
-
-~~~
-{
-  "schemas": ["urn:ietf:params:scim:schemas:core:2.0:User"],
-  "id": "2819c223-7f76-453a-919d-413861904646",
-  "meta": {
-    "resourceType": "User",
-    "isDeleted": true,
-    "created":"2011-08-01T10:29:49.793Z",
-    "lastModified":"2011-08-01T18:29:49.793Z",
-    "location": "https://example.com/v2/Users/2819c223-7f76-453a-919d-413861904646",
-    "version":"W\/\"f250dd84f0671c3\""
-  }
-}
-~~~
-#### Example Delta Query Response
-Below example depicts a response with newly created, updated and deleted resources returned by the SCIM server in response to the Delta Query request for User resource.
-
-~~~
-GET Users?deltaQuery&count=50&deltaToken=VTHKLOUTREO
-Host: example.com
-Accept: application/scim+json
-Authorization: Bearer U8YJcYYRMjbGeepD
-
-
-HTTP/1.1 200 OK
-Content-Type: application/scim+json
-{
-    "schemas":["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
-    "totalResults":3,
-    "Resources":[
-    {
-        "id":"2819c223-7f76-453a-919d-413861904646",
-        "externalId":"bjensen",
-        "meta":{
-        "resourceType":"User",
-        "created":"2011-08-01T18:29:49.793Z",
-        "lastModified":"2011-08-01T18:29:49.793Z",
-        "location":
-        "https://example.com/v2/Users/2819c223-7f76-453a-919d-413861904646",
-        "version":"W\/\"f250dd84f0671c3\""
-        },
-        "name":{
-        "formatted":"Ms. Barbara J Jensen III",
-        "familyName":"Jensen",
-        "givenName":"Barbara"
-        },
-        "userName":"bjensen",
-        "phoneNumbers":[
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:delta:response"],
+    "changedResourceId":"U49z",
+    "resourceType":"User",
+    "changeType":"Update",
+    "operations":[
         {
-        "value":"555-555-8377",
-        "type":"work"
+            "op":"add",
+            "path":"urn:ietf:params:scim:schemas:extension:enterprise\
+:2.0:User:employeeNumber",
+            "value": "123456"
         }
-        ],
-        "emails":[
-        {
-        "value":"bjensen@example.com",
-        "type":"work"
-        }
-        ]
-    },
-    {
-       "id":"c75ad752-64ae-4823-840d-ffa80929976c",
-       "externalId":"jsmith",
-       "meta":{
-       "isDeleted":"true",
-        "resourceType":"User",
-        "created":"2011-08-01T10:29:49.793Z",
-        "lastModified":"2011-08-01T18:29:49.793Z",
-        "location":
-        "https://example.com/v2/Users/2819c223-7f76-453a-919d-413861904646",
-        "version":"W\/\"f250dd84f0671c3\""
-        }
-    },
-    {
-       "id":"c75ad752-64ae-4823-840d-ffa80929976c",
-        "externalId":"xxxxxx",
-       "meta":{
-        "isDeleted":"true",
-        "resourceType":"User",
-        "created":"2011-08-01T10:29:49.793Z",
-        "lastModified":"2011-08-01T18:29:49.793Z",
-        "location":
-        "https://example.com/v2/Users/2819c223-7f76-453a-919d-413861904646",
-        "version":"W\/\"f250dd84f0671c3\""
-        }
-    }
     ]
 }
 ~~~
 
-## Delta Query Errors
-If a Service Provider encounters an invalid delta query parameters (invalid delta token value, deltaQuery value, etc), or other error condition, the Service Provider SHOULD return the appropriate HTTP response status code and detailed JSON error response as defined in Section 3.12 of [RFC7644].  Most deltaQuery error conditions would generate HTTP response with status code 400.  Since many deltaQuery error conditions are not user recoverable, error messages SHOULD focus on communicating error details to the SCIM client developer.
-
-For HTTP status code 400 (Bad Request) responses, the following detail error types are defined. These error types extend the list of error types defined in RFC 7644 Section 3.12, Table 9: SCIM Detail Error Keyword Values.
-
-| scimType | Description | Applicability |
-invalidValue | The parameter deltaToken was provided without the deltaQuery parameter. Parameter "deltaToken" must be accompanied with deltaQuery parameter. OR Invalid value for "deltaToken" parameter. Value for "deltaToken" parameter must be the same as provided by the SCIM service provider in nextDeltaToken OR Invalid value for deltaQuery parameter. Value of "deltaQuery" parameter must be either true or false| GET (Section Delta Query Parameters of ([Delta Query Draft])), POST (Section Delta Query Using HTTP POST of ([Delta Query Draft]))|
-expiredDeltaToken | Delta Token has expired. Do not wait longer than deltaTokenExpiry (40 minutes) to request subsequent delta query requests.| GET (Section 3.4.2 of [RFC7644]), POST (Section Delta Query Using HTTP POST of ([Delta Query]))|
-{: title="Delta Query Errors"}
-
-## Filtering
-If filtering is implemented as described in Section 3.4.2.2 of [RFC7644], then delta query results should be filtered.
-
-When the client makes a subsequent deltaQuery request, it should query the same Service Provider endpoint with all query parameters and values being identical to the initial query issued in the previous delta scan or full scan with the exception of the deltatoken value which should be set to a nextDeltaToken value that was returned by Service Provider in a previous delta query response.
-
-
-## Sorting
-If sorting is implemented as described Section 3.4.2.3 of [RFC7644], then deltaQuery results SHOULD be sorted.
-
-
-# Delta Query using HTTP POST
-Section 3.4.2.4 of [RFC7644] defines how clients MAY execute the HTTP POST method combined with the "/.search" path extension to issue execute queries without passing parameters on the URL. When using "/.search", the client would pass the parameters defined in Section 2
+##### Adding or replacing multiple attribute values
 
 ~~~
-POST /User/.search
-Host: example.com
-Accept: application/scim+json
-Authorization: Bearer U8YJcYYRMjbGeepD
-
 {
- "schemas": [
- "urn:ietf:params:scim:api:messages:2.0:SearchRequest"],
- "attributes": ["displayName", "userName"],
- "filter":
- "displayName sw \"smith\"",
- "deltaQuery": "true",
- "deltaToken": "VTHKLOUTREO"
+    "op":"add",
+    "value": {
+        "displayName": "John Doe",
+        "active": true,
+        "urn:ietf:params:scim:schemas:extension:enterprise\
+:2.0:User:employeeNumber": "12345"
+    }
 }
 ~~~
 
-Which would return a result containing a "nextDeltaToken" value which may
-be used by the client in a subsequent delta scan call to return the next set of modified resources.
+##### Adding a value to a multi-valued attribute
+
+~~~
+{
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:delta:response"],
+    "changedResourceId":"U49z",
+    "resourceType":"User",
+    "changeType":"Update",
+    "operations":[
+        {
+            "op":"add",
+            "path":"phoneNumbers",
+            "value":[
+                {
+                    "value":"555-555-5555",
+                    "type":"work"
+                }
+            ]
+
+        }
+    ]
+}
+~~~
+
+##### Adding members being added to a group
+
+~~~
+{
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:delta:response"],
+    "changedResourceId":"G88",
+    "resourceType":"Group",
+    "changeType":"Update",
+    "operations":[
+        {
+            "op":"add",
+            "path":"members",
+            "value":[
+                {
+                    "value":"memberId7"
+                },
+                {
+                    "value":"memberId8"
+                },
+                {
+                    "value":"memberId9"
+                }
+            ]
+        }
+    ]
+}
+~~~
+
+
+#### Remove
+
+The "remove" op is used when one or more values of an attribute have been removed. Examples include:
+
+##### Removing a single-valued attribute
+
+~~~
+{
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:delta:response"],
+    "changedResourceId":"U40iA1Q9",
+    "resourceType":"User",
+    "changeType":"Update",
+    "operations":[
+        {
+            "op":"remove",
+            "path":"manager"
+        }
+    ]
+}
+~~~
+
+##### Removing a value from a typed multi-valued attribute
+~~~
+{
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:delta:response"],
+    "changedResourceId":"U40iA1Q9",
+    "resourceType":"User",
+    "changeType":"Update",
+    "operations":[
+        {
+            "op":"remove",
+            "path":"emails[type eq \"work\" and \
+value eq \"user5@example.com\"]"
+        }
+    ]
+}
+~~~
+##### Removing members from a group
+
+~~~
+{
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:delta:response"],
+    "changedResourceId":"G88",
+    "resourceType":"Group",
+    "changeType":"Update",
+    "operations":[
+        {
+            "op":"remove",
+            "path":"members[value eq \"member1\"]",
+        },
+        {
+            "op":"remove",
+            "path":"members[value eq \"member2\"]",
+        }
+    ]
+}
+~~~
+
+
+#### Replace
+
+The "replace" op can be used when some or all of the values of an attribute have been replaced. When responding with operations about multi-valued attributes, service providers SHOULD provide unambiguous valuePath filters when possible, and SHALL provide all current values of the attribute when constructing an unambiguous valuePath filter is not possible. Examples include:
+
+##### Replacing a single-valued attribute
+
+~~~
+{
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:delta:response"],
+    "changedResourceId":"U40iA1Q9",
+    "resourceType":"User",
+    "changeType":"Update",
+    "operations":[
+        {
+            "op":"replace",
+            "path":"userName",
+            "value":"jensenb@example.com"
+        }
+    ]
+}
+~~~
+
+##### Replacing values in a typed multi-valued attribute
+
+~~~
+{
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:delta:response"],
+    "changedResourceId":"U40iA1Q9",
+    "resourceType":"User",
+    "changeType":"Update",
+    "operations":[
+        {
+            "op":"replace",
+            "path":"phoneNumbers[type eq \"work\" \
+and primary eq true].value",
+            "value":"555-555-5556"
+        }
+    ]
+}
+~~~
+
+## Request and Response Examples
+
+### Requesting changed resources
+
+The following example shows a client using a previously obtained delta token to make a delta query request for all changes for the User resource type.
+
+~~~
+POST /Users/.delta
+Host: example.com
+Accept: application/scim+json
+Authorization: Bearer foo
+
+{
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:delta:request"],
+    "deltaToken":"dGVzdC1kZWx0YVRva2Vu"
+}
+~~~
+
+The service provider response would then contain any User resources that had changed since the delta token "dGVzdC1kZWx0YVRva2Vu" was issued. The following example shows a response with a newly created user, a user with attribute updates, and a deleted user.
+
+~~~
+HTTP/1.1 200/OK
+Content-Type: application/scim+json
+
+{
+    "totalResults": 3,
+    "itemsPerPage": 3,
+    "schemas": ["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
+    "Resources": [
+        {
+            "schemas":"urn:ietf:scim:api:messages:2.0:delta:response",
+            "changedResourceId": "123",
+            "resourceType": "User",
+            "changeType": "Create",
+            "data": {
+                "userName": "bjensen",
+                "name": {
+                    "formatted": "Ms. Barbara J Jensen III",
+                    "familyName": "Jensen",
+                    "givenName": "Barbara"
+                },
+                "id": "123",
+                "active": true,
+                "phoneNumbers": [
+                    {
+                        "value": "555-555-5555",
+                        "type": "work"
+                    }
+                ]
+            }
+        },
+        {
+            "schemas":"urn:ietf:scim:api:messages:2.0:delta:response",
+            "changedResourceId": "456",
+            "resourceType": "User",
+            "changeType": "Update",
+            "operations": [
+                {
+                    "op": "replace",
+                    "path": "name.givenName",
+                    "value": "Jim"
+                },
+                {
+                    "op": "add",
+                    "path": "phoneNumbers",
+                    "value": [
+                        {
+                            "value": "555-555-4567",
+                            "type": "mobile"
+                        }
+                    ]
+                }
+            ]
+
+        },
+        {
+            "schemas":"urn:ietf:scim:api:messages:2.0:delta:response",
+            "changedResourceId": "789",
+            "resourceType": "User",
+            "changeType": "Delete"
+        }
+    ]
+}
+~~~
+
+### Updates from service providers that do not support attribute-level change tracking
+
+Service providers that do not support attribute-level change tracking MAY return the full current state of changed resources in the "data" attribute. The following example shows a delta query response by a service provider that only returns the full current state of changed resources. Clients SHALL be responsible for determining what attribute values have changed when the service provider has returned updated resource information using the "data" attribute. 
+
+~~~
+POST /Users/.delta
+Host: example.com
+Accept: application/scim+json
+Authorization: Bearer foo
+
+{
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:delta:request"], 
+    "deltaToken":"3894e6d5-8e9e-4b5c-9b3b-6e8e7d4a4e9d",
+    "filter":"title eq \"Tour Guide\" and \
+addresses.country eq \"France\""
+}
+~~~
+
+The service provider's response (some results omitted for brevity) is:
+
 ~~~
 HTTP/1.1 200 OK
 Content-Type: application/scim+json
 
 {
- "totalResults":10,
- "itemsPerPage":10,
- "nextdeltatoken":"OPUTREWSFDE",
- "schemas":["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
- "Resources":[{
-  ...
-}]
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
+    "totalResults":30,
+    "itemsPerPage":10,
+    "Resources":[
+        {
+            "schemas":["urn:ietf:params:scim:api:messages:\
+2.0:delta:response"],
+            "changedResourceId":"qwerty",
+            "resourceType":"User",
+            "changeType":"Update",
+            "data":{
+                "userName":"bjensen",
+                "name":{
+                    "formatted":"Ms. Barbara J Jensen III",
+                    "familyName":"Jensen",
+                    "givenName":"Barbara"
+                },
+                "title":"Tour Guide",
+                "id":"qwerty",
+                "active":true,
+                "emails":[
+                    {
+                        "value":"bjensen@example.com",
+                        "type":"work",
+                        "primary":true
+                    }
+                ],
+                "addresses":[
+                    {
+                        "type":"work",
+                        "country":"France",
+                        "locality":"Paris",
+                        "primary":true
+                    }
+                ]
+
+            }
+        },
+        {...},
+        {...}
+    ]
 }
-~~~
-
-# Service Provider Configuration
-
-The /ServiceProviderConfig resource defined in Section 4 of [RFC7644] facilitates discovery of SCIM service provider features. A SCIM Service provider implementing delta query SHOULD include the following additional attribute in JSON document returned by the /ServiceProviderConfig endpoint:
-
-      deltaQuery
-   	  : A complex attribute that indicates delta query configuration options.  OPTIONAL.
-      supported
-      : A Boolean value specifying support of delta query.  REQUIRED.
-      deltaTokenExpiry
-      : Non-negative integer specifying the maximum number minutes that a deltaToken is valid between delta Scan requests.  Clients waiting too long between subsequent delta scan requests may receive an invalid delta token error response. OPTIONAL.
-
-If the SCIM client issues a delta query to a SCIM service provider that does not support or implement delta query feature then SCIM service provider will respond with HTTP Status Code 501, Unsupported Feature - Delta Query. Server does not support delta query feature.
-
-Before using delta query, a SCIM client MAY fetch the Service Provider Configuration document from the SCIM service provider and verify that delta query is supported.
-
-For example:
 
 ~~~
-GET /ServiceProviderConfig
+
+
+### Creation of a large resource across multiple pages
+
+As described in (Ref to DQ Response - Create), large resources such as groups with many members may be returned across multiple pages. The following example shows a service provider's delta query responses for a group broken into multiple delta query response messages.
+
+~~~
+POST /Groups/.delta
 Host: example.com
 Accept: application/scim+json
-
-~~~
-A service provider supporting both delta query token would return a document similar to the following (full ServiceProviderConfig schema defined in Section 5 of [RFC7643] has been omitted for brevity):
-
-~~~
-HTTP/1.1 200 OK
-Content-Type: application/scim+json
+Authorization: Bearer foo
 
 {
- "schemas": [
- "urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig"],
-
- 	...
-
- "deltaQuery": {
-  	"supported": true
-	},
-
-   ...
-
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:delta:request"], 
+    "deltaToken":"3894e6d5-8e9e-4b5c-9b3b-6e8e7d4a4e9d",
 }
 ~~~
 
-Service Provider implementors SHOULD ensure that misuse of delta query by a SCIM client does not deplete Service Provider resources or prevent valid requests from other clients being handled. Defenses for a SCIM Service Provider are similar those used to protect other Web API services -- including the use of a "Web API gateway" layer, to provide authentication, rate limiting, IP allow/block lists, logging and monitoring, response caching, etc.
+The service provider's response may contain delta query responses pertaining to other resources. For the newly created example group with an "id" value of "G123", the following delta query responses are returned:
 
-# ADD NORMATIVE REFERENCES
+Some "members" values are omitted in the below examples for brevity.
+
+~~~
+{
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
+    "totalResults":405,
+    "itemsPerPage":1,
+    "nextCursor":"foo",
+    "Resources":[
+        {
+            "schemas":["urn:ietf:params:scim:api:messages:\
+    2.0:delta:response"],
+            "changedResourceId":"G123",
+            "resourceType":"Group",
+            "changeType":"Create",
+            "data":{
+                "id":"G1",
+                "displayName":"All Users",
+                "members":[
+                    {
+                        "value":"member1"
+                    },
+                        ...
+                    {
+                        "value":"member99"
+                    }
+                ]
+
+            }
+        }
+    ]
+}
+~~~
+
+Following the "Create" delta query response, the service provider on a later page of results returns:
+
+~~~
+{
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
+    "totalResults":456,
+    "itemsPerPage":1,
+    "nextCursor":"bar",
+    "Resources":[
+        {
+            "schemas":["urn:ietf:params:scim:api:messages:\
+    2.0:delta:response"],
+            "changedResourceId":"G123",
+            "resourceType":"Group",
+            "changeType":"Update",
+            "operations":[
+                {
+                    "op":"add",
+                    "path":"members",
+                    "value":[
+                        {
+                            "value":"member100"
+                        },
+                        {
+                            "value":"..."
+                        },
+                        {
+                            "value":"member199"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+},
+~~~
+
+# Security Considerations
+To-do
+
+# IANA Considerations
+To-do
 
 # Acknowledgements
+To-do
 
-The authors would like to thank Mike Kiser (Sailpoint) for his contributions to early design discussions for this draft.
+# Other
+To-do
