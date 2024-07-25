@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-07-23T01:25:40.478980+00:00",
+  "timestamp": "2024-07-25T01:25:26.989272+00:00",
   "repo": "ietf-scim-wg/draft-sehgal-scim-delta-query",
   "labels": [
     {
@@ -393,6 +393,34 @@
       "mergedBy": "ansg-aws",
       "mergeCommit": {
         "oid": "9baca8fe3ec806769011c679cb916975293faf25"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 13,
+      "id": "PR_kwDOKoD-Ec52ZDYA",
+      "title": "Upload of -01 draft",
+      "url": "https://github.com/ietf-scim-wg/draft-sehgal-scim-delta-query/pull/13",
+      "state": "MERGED",
+      "author": "ZollnerdMSFT",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Rewritten draft, overhaul from -00",
+      "createdAt": "2024-07-24T21:37:17Z",
+      "updatedAt": "2024-07-24T23:23:07Z",
+      "baseRepository": "ietf-scim-wg/draft-sehgal-scim-delta-query",
+      "baseRefName": "main",
+      "baseRefOid": "9baca8fe3ec806769011c679cb916975293faf25",
+      "headRepository": "ietf-scim-wg/draft-sehgal-scim-delta-query",
+      "headRefName": "ZollnerdMSFT-SCIMDQ-v1",
+      "headRefOid": "476f0da62abf40fe0e7b0c891f1c0b6d889ef81e",
+      "closedAt": "2024-07-24T23:22:59Z",
+      "mergedAt": "2024-07-24T23:22:59Z",
+      "mergedBy": "ZollnerdMSFT",
+      "mergeCommit": {
+        "oid": "c0504420aaeb454c2082e31d78ae95ca263b54f6"
       },
       "comments": [],
       "reviews": []
