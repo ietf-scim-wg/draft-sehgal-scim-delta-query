@@ -80,7 +80,7 @@ This document defines a set of extensions to the list of SCIM endpoints in {{Sec
 
 |Resource|Endpoint|Operations|Description|
 Delta Token|\[prefix\]/.deltaToken|GET|Acquire a delta token.|
-Delta Query|\[prefix\]/.delta|POST|Search from system root or within a resource endpoint for resources that have changed.|
+Delta Query|\[prefix\]/.delta|POST|Search from system root or within a resource endpoint for resources that have changed since the acquisition of the delta token.|
 
 ## Delta Tokens
 
