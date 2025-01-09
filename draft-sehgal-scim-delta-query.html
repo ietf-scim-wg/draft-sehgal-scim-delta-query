@@ -8,26 +8,25 @@
 <meta content="Anjali Sehgal" name="author">
 <meta content="Danny Zollner" name="author">
 <meta content="
-       This document defines extensions to the System for Cross-domain Identity Management (SCIM) standard  RFC7643  to enable incremental retrieval of resources that have been updated or deleted in a SCIM service provider. This allows for more efficient interactions between SCIM clients and service providers and addresses problems that have inhibited large-scale implementation of use cases such as synchronization, entropy detection, and identity reconciliation. 
+       This document defines extensions to the SCIM 2.0 protocol that enable clients to poll service providers for changes that have occurred since a delta (or watermark) token was issued by the service provider. 
     " name="description">
-<meta content="xml2rfc 3.19.1" name="generator">
+<meta content="xml2rfc 3.25.0" name="generator">
 <meta content="Internet-Draft" name="keyword">
 <meta content="SCIM" name="keyword">
 <meta content="draft-sehgal-scim-delta-query-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.19.1
-    Python 3.11.6
+  xml2rfc 3.25.0
+    Python 3.12.8
     ConfigArgParse 1.7
-    google-i18n-address 3.1.0
+    google-i18n-address 3.1.1
     intervaltree 3.1.0
-    Jinja2 3.1.2
-    lxml 4.9.3
-    platformdirs 4.1.0
-    pycountry 22.3.5
-    PyYAML 6.0.1
-    requests 2.31.0
-    setuptools 68.2.2
-    six 1.16.0
+    Jinja2 3.1.5
+    lxml 5.3.0
+    platformdirs 4.3.6
+    pycountry 24.6.1
+    PyYAML 6.0.2
+    requests 2.32.3
+    setuptools 70.3.0
     wcwidth 0.2.13
 -->
 <link href="draft-sehgal-scim-delta-query.xml" rel="alternate" type="application/rfc+xml">
@@ -164,31 +163,6 @@
 }
 
 @font-face {
-  font-family: 'Cabin Condensed';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: local('Cabin Condensed SemiBold'), local('CabinCondensed-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/cabincondensed-semibold-vietnamese.woff2') format('woff2');
-  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
-}
-@font-face {
-  font-family: 'Cabin Condensed';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: local('Cabin Condensed SemiBold'), local('CabinCondensed-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/cabincondensed-semibold-latin-ext.woff2') format('woff2');
-  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-@font-face {
-  font-family: 'Cabin Condensed';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: local('Cabin Condensed SemiBold'), local('CabinCondensed-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/cabincondensed-semibold-latin.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-@font-face {
   font-family: 'Oxygen Mono';
   font-style: normal;
   font-weight: 400;
@@ -205,6 +179,77 @@
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 :root {
   color-scheme: light dark;
   --background-color: #fff;
@@ -217,6 +262,7 @@
   --pilcrow-strong: #bbb;
   --small-font-size: 14.5px;
   --font-mono: 'Oxygen Mono', monospace;
+  --font-title: "Sofia Sans Semi Condensed", sans-serif;
   scrollbar-color: #bbb #eee;
 }
 body {
@@ -234,9 +280,15 @@ body {
 }
 
 /* headings */
+section {
+  clear: both;
+}
+.section-number {
+  padding-right: 0.5em;
+}
 h1, h2, h3, h4, h5, h6 {
-  font-family: "Cabin Condensed", sans-serif;
-  font-weight: 600;
+  font-family: var(--font-title);
+  font-weight: 680;
   margin: 0.8em 0 0.3em;
   font-size-adjust: 0.5;
   color: var(--title-color);
@@ -265,6 +317,7 @@ h4, h5, h6 {
 /* general structure */
 .author {
   padding-bottom: 0.3em;
+  vertical-align: top;
 }
 #abstract+p {
   font-size: 18px;
@@ -342,25 +395,26 @@ svg[font-family~="monospace" i], svg [font-family~="monospace" i] {
 ol, ul {
   padding: 0;
   margin: 0 0 0.5em 2em;
-}
-:is(ol, ul) :is(ol, ul) {
-  margin-left: 1em;
+  & :is(ol, ul) {
+    margin-left: 1em;
+  }
 }
 li {
   margin: 0 0 0.25em 0;
 }
-.ulCompact li {
-  margin: 0;
-}
 ul.empty, .ulEmpty {
   list-style-type: none;
-}
-ul.empty li, .ulEmpty li {
-  margin-top: 0.5em;
+  & li {
+    margin-top: 0.5em;
+  }
 }
 :is(ul, ol).compact, .ulCompact, .olCompact {
-  line-height: 1;
   margin: 0 0 0 2em;
+  & li {
+    margin: 0;
+    & :first-child { margin-top: 0; }
+    & :last-child { margin-bottom: 0; }
+  }
 }
 
 /* definition lists */
@@ -368,38 +422,39 @@ dl {
   clear: left;
   --indent: 3ch;
   /* --indent: attr(indent ch); not supported in any browser, but we can dream */
-}
-dl.olPercent {
-  --indent: 5ch;
+  &.olPercent {
+    --indent: 5ch;
+    & > dt {
+      min-width: calc(var(--indent) - 2ch);
+    }
+  }
+  &.olPercent > dt {
+    float: none;
+  }
+
+  dl > dd > & {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+  }
 }
 dl > dt {
   float: left;
   margin-right: 2ch;
   min-width: 8ch;
 }
-dl.dlNewline > dt {
-  float: none;
-}
 dl > dd {
   margin-bottom: .8em;
   margin-left: var(--indent) !important; /* stupid element overrides */
   min-height: 2ex;
 }
-dl.olPercent > dt {
-  min-width: calc(var(--indent) - 2ch);
-}
 :is(dl.compact, .dlCompact) > dd {
   margin-bottom: 0;
-}
-:is(dl.compact, .dlCompact) > dd > :is(:first-child, .break:first-child + *) {
-  margin-top: 0;
-}
-:is(dl.compact, .dlCompact) > dd > :is(:last-child) {
-  margin-bottom: 0;
-}
-dl > dd > dl {
-  margin-top: 0.5em;
-  margin-bottom: 0;
+  & > :is(:first-child, .break:first-child + *) {
+    margin-top: 0;
+  }
+  & > :is(:last-child) {
+    margin-bottom: 0;
+  }
 }
 :is(dd, span).break {
   display: none;
@@ -463,6 +518,7 @@ figcaption, caption {
   font-style: italic;
   margin: 0.5em 1.5em;
   text-align: left;
+  caption-side: bottom;
 }
 @media screen {
   /* Auto-collapse boilerplate. */
@@ -480,7 +536,11 @@ figcaption, caption {
   }
   pre, svg {
     display: inline-block;
-    overflow-x: auto;
+    /* In the horizontal direction, sometimes people make over-sized figures.
+       Scrollbars for those is therefore necessary: auto adds them as necessary..
+       In the vertical direction, the line-height can combine with the font
+       asender/descender height to produce scrollbars: hidden avoids that. */
+    overflow: auto hidden;
   }
   pre {
     max-width: 100%;
@@ -517,6 +577,7 @@ cite {
 
 /* tables */
 table {
+  width: auto;
   max-width: 100%;
   margin: 0 0 1em;
   border-collapse: collapse;
@@ -531,6 +592,16 @@ table.center {
 table.left {
   margin-right: auto;
 }
+table .text-left {
+  text-align: left;
+}
+table .text-center {
+  text-align: center;
+}
+table .text-right {
+  text-align: right;
+}
+
 thead, tbody {
   border: 1px solid var(--line-color);
 }
@@ -561,9 +632,11 @@ a.pilcrow {
   margin-left: 3px;
   opacity: 0.2;
   user-select: none;
+  &[href] {
+    color: var(--pilcrow-weak);
+    &:hover { text-decoration: none; }
+  }
 }
-a.pilcrow[href] { color: var(--pilcrow-weak); }
-a.pilcrow[href]:hover { text-decoration: none; }
 @media not print {
   :hover > a.pilcrow {
     opacity: 1;
@@ -603,26 +676,28 @@ sub, sup {
   font-size: var(--small-font-size);
   line-height: 18px;
   --identifier-width: 15ch;
-}
-#identifiers dt {
-  width: var(--identifier-width);
-  min-width: var(--identifier-width);
-  clear: left;
-  float: left;
-  text-align: right;
-  margin-right: 1ch;
-}
-#identifiers dd {
-  margin: 0;
-  margin-left: calc(1em + var(--identifier-width)) !important;
-  min-width: 5em;
-}
-#identifiers .authors .author {
-  display: inline-block;
-  margin-right: 1.5em;
-}
-#identifiers .authors .org {
-  font-style: italic;
+  & dt {
+    width: var(--identifier-width);
+    min-width: var(--identifier-width);
+    clear: left;
+    float: left;
+    text-align: right;
+    margin-right: 1ch;
+  }
+  & dd {
+    margin: 0;
+    margin-left: calc(1em + var(--identifier-width)) !important;
+    min-width: 5em;
+  }
+  & .authors {
+    & .author {
+      display: inline-block;
+      margin-right: 1.5em;
+    }
+    & .org {
+      font-style: italic;
+    }
+  }
 }
 
 /* The prepared/rendered info at the very bottom of the page */
@@ -633,9 +708,6 @@ sub, sup {
   margin-top: 2em;
 }
 .docInfo .prepared {
-  float: left;
-}
-.docInfo .prepared {
   float: right;
 }
 
@@ -643,47 +715,48 @@ sub, sup {
 #toc {
   padding: 0.75em 0 2em 0;
   margin-bottom: 1em;
-}
-#toc nav ul {
-  margin: 0 0.5em 0 0;
-  padding: 0;
-  list-style: none;
-}
-#toc nav li {
-  line-height: 1.3em;
-  margin: 2px 0;
-  padding-left: 1.2em;
-  text-indent: -1.2em;
-}
-#toc a.xref {
-  white-space: normal;
-}
-/* references */
-.references dt {
-  text-align: right;
-  font-weight: bold;
-  min-width: 10ch;
-  margin-right: 1.5ch;
-}
-.references dt:target::before {
-  content: "⇒";
-  width: 15px;
-  margin: 0 10px 0 -25px;
-}
-.references dd {
-  margin-left: 12ch !important;
-  overflow: auto;
+
+  & nav {
+    & ul {
+      margin: 0 0.5em 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    & li {
+      line-height: 1.3em;
+      margin: 2px 0;
+      padding-left: 1.2em;
+      text-indent: -1.2em;
+    }
+  }
+  & a.xref {
+    white-space: normal;
+  }
 }
 
-.refInstance {
-  margin-bottom: 1.25em;
+.references {
+  & > dt {
+    text-align: right;
+    font-weight: bold;
+    min-width: 10ch;
+    margin-right: 1.5ch;
+    &:target::before {
+      content: "⇒";
+      margin: 0 10px 0 -25px;
+    }
+  }
+  & > dd {
+    margin-left: 12ch !important;
+    overflow: visible;
+    & .refInstance {
+      margin-bottom: 0.8em;
+    }
+    & .ascii {
+      margin-bottom: 0.25em;
+    }
+  }
 }
 
-.references .ascii {
-  margin-bottom: 0.25em;
-}
-
-/* index */
 #rfc\.index\.index + ul {
   margin-left: 0;
 }
@@ -691,21 +764,33 @@ sub, sup {
 /* authors */
 address.vcard {
   font-style: normal;
-  margin: 1em 0;
+  max-width: 20em;
+  margin: 1em auto 1em 0;
+
+  & .nameRole {
+    font-weight: 700;
+    margin-left: 0;
+  }
+  & .label {
+    margin: 0.5em 0;
+  }
+  & .type {
+    display: none;
+  }
+  & .alternative-contact {
+    margin: 0.5em 0 0.25em 0;
+  }
+  & .non-ascii {
+    margin: 0 0 0 2em;
+  }
+  & div.left {
+    text-align: left;
+  }
+  & div.right {
+    text-align: right;
+  }
 }
-address.vcard .nameRole {
-  font-weight: 700;
-  margin-left: 0;
-}
-address.vcard .label {
-  margin: 0.5em 0;
-}
-address.vcard .type {
-  display: none;
-}
-.alternative-contact {
-  margin: 1.5em 0 1em;
-}
+
 hr.addr {
   border-top: 1px dashed;
   margin: 0;
@@ -727,6 +812,7 @@ hr.addr {
   }
 }
 
+/* Comments */
 .rfcEditorRemove p:first-of-type {
   font-style: italic;
 }
@@ -737,7 +823,31 @@ hr.addr {
 .crefSource {
   font-style: italic;
 }
-/* alternative layout for smaller screens */
+
+@media screen {
+  #toc nav {
+    font-family: var(--font-title);
+    font-weight: 360;
+    & > ul { margin-bottom: 2em; }
+    & ul {
+      margin: 0 0 0 4px;
+      & :is(p, li) {
+        margin: 2px 0;
+      }
+    }
+  }
+  #toc a.toplink {
+    float: right;
+  }
+}
+@media not screen {
+  #toc a.toplink {
+    display: none;
+  }
+}
+
+
+/* TOC layout for smaller screens */
 @media screen and (max-width: 929px) {
   #toc {
     position: fixed;
@@ -748,9 +858,6 @@ hr.addr {
     margin: 0;
     border-bottom: 1px solid #ccc;
     opacity: 0.6;
-  }
-  #toc.active {
-      opacity: 1;
   }
   #toc h2 {
     margin: 0;
@@ -763,17 +870,17 @@ hr.addr {
     background-color: #444;
     color: white;
     cursor: pointer;
-  }
-  #toc h2::before { /* css hamburger */
-    float: right;
-    position: relative;
-    width: 1em;
-    height: 1px;
-    left: -164px;
-    margin: 8px 0 0 0;
-    background: white none repeat scroll 0 0;
-    box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
-    content: "";
+    &::before { /* css hamburger */
+      float: right;
+      position: relative;
+      width: 1em;
+      height: 1px;
+      left: -164px;
+      margin: 8px 0 0 0;
+      background: white none repeat scroll 0 0;
+      box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+      content: "";
+    }
   }
   #toc nav {
     display: none;
@@ -784,14 +891,13 @@ hr.addr {
     height: calc(100vh - 48px);
     border-left: 1px solid #ddd;
   }
-  #toc.active nav {
-    display: block;
+  #toc.active {
+    opacity: 1;
+    & nav { display: block; }
   }
   /* Make the collapsed ToC header render white on gray also when it's a link */
   #toc h2 a,
-  #toc h2 a:link,
-  #toc h2 a:focus,
-  #toc h2 a:hover,
+  #toc h2 a:is(:link, :focus, :hover),
   #toc a.toplink,
   #toc a.toplink:hover {
     color: white;
@@ -799,11 +905,11 @@ hr.addr {
     text-decoration: none;
   }
   #toc a.toplink {
-    margin-top: 2px;
+    margin: 2px 0.5em 0;
   }
 }
 
-/* alternative layout for wide screens */
+/* TOC layout for wide screens */
 @media screen and (min-width: 930px) {
   body {
     padding-right: 360px;
@@ -832,20 +938,12 @@ hr.addr {
     overscroll-behavior: contain;
     scrollbar-width: thin;
   }
-  #toc nav > ul  {
-    margin-bottom: 2em;
-  }
-  #toc ul {
-    margin: 0 0 0 4px;
-    font-size: var(--small-font-size);
-  }
-  #toc ul :is(p, li) {
-    margin: 2px 0;
-    line-height: 22px;
-  }
   img { /* future proofing */
     max-width: 100%;
     height: auto;
+  }
+  #toc a.toplink {
+    margin: 8px 0.5em 0;
   }
 }
 
@@ -888,9 +986,6 @@ hr.addr {
   td {
     border-top: 1px solid #ddd;
   }
-  .toplink {
-    display: none;
-  }
 }
 
 @page :first {
@@ -913,82 +1008,6 @@ hr.addr {
   size: A4;
   margin-bottom: 45mm;
   padding-top: 20px;
-}
-
-/* Changes introduced to fix issues found during implementation */
-
-/* Separate body from document info even without intervening H1 */
-section {
-  clear: both;
-}
-
-/* Top align author divs, to avoid names without organization dropping level with org names */
-.author {
-  vertical-align: top;
-}
-
-/* Style section numbers with more space between number and title */
-.section-number {
-  padding-right: 0.5em;
-}
-
-/* Add styling for a link in the ToC that points to the top of the document */
-a.toplink {
-  float: right;
-  margin: 8px 0.5em 0;
-}
-
-/* Provide styling for table cell text alignment */
-table .text-left {
-  text-align: left;
-}
-table .text-center {
-  text-align: center;
-}
-table .text-right {
-  text-align: right;
-}
-
-/* Make the alternative author contact information look less like just another
-   author, and group it closer with the primary author contact information */
-.alternative-contact {
-  margin: 0.5em 0 0.25em 0;
-}
-address .non-ascii {
-  margin: 0 0 0 2em;
-}
-
-/* With it being possible to set tables with alignment
-  left, center, and right, { width: 100%; } does not make sense */
-table {
-  width: auto;
-}
-
-/* Avoid reference text that sits in a block with very wide left margin,
-   because of a long floating dt label.*/
-.references dd {
-  overflow: visible;
-}
-
-/* Control caption placement */
-caption {
-  caption-side: bottom;
-}
-
-/* Limit the width of the author address vcard, so names in right-to-left
-   script don't end up on the other side of the page. */
-
-address.vcard {
-  max-width: 20em;
-  margin-right: auto;
-}
-
-/* For address alignment dependent on LTR or RTL scripts */
-address div.left {
-  text-align: left;
-}
-address div.right {
-  text-align: right;
 }
 
 /* Dark mode. */
@@ -1027,11 +1046,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">SCIM Delta Query</td>
-<td class="right">January 2024</td>
+<td class="right">January 2025</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Sehgal &amp; Zollner</td>
-<td class="center">Expires 25 July 2024</td>
+<td class="center">Expires 13 July 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1044,21 +1063,21 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-sehgal-scim-delta-query-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-01-22" class="published">22 January 2024</time>
+<time datetime="2025-01-09" class="published">9 January 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2024-07-25">25 July 2024</time></dd>
+<dd class="expires"><time datetime="2025-07-13">13 July 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
-      <div class="author-name">A. Sehgal, <span class="editor">Ed.</span>
-</div>
+      <div class="author-name">A. Sehgal</div>
 <div class="org">Amazon Web Services</div>
 </div>
 <div class="author">
-      <div class="author-name">D. Zollner</div>
+      <div class="author-name">D. Zollner, <span class="editor">Ed.</span>
+</div>
 <div class="org">Microsoft</div>
 </div>
 </dd>
@@ -1067,7 +1086,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <h1 id="title">SCIM Delta Query</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">This document defines extensions to the System for Cross-domain Identity Management (SCIM) standard <span><a href="#RFC7644" class="internal xref">RFC7643</a> [<a href="#RFC7644" class="cite xref">RFC7644</a>]</span> to enable incremental retrieval of resources that have been updated or deleted in a SCIM service provider. This allows for more efficient interactions between SCIM clients and service providers and addresses problems that have inhibited large-scale implementation of use cases such as synchronization, entropy detection, and identity reconciliation.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-1">This document defines extensions to the SCIM 2.0 protocol that enable clients to poll service providers for changes that have occurred since a delta (or watermark) token was issued by the service provider.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-discussion-venues">
@@ -1099,7 +1118,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 25 July 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 13 July 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1108,7 +1127,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
         </h2>
 <p id="section-boilerplate.2-1">
-            Copyright (c) 2024 IETF Trust and the persons identified as the
+            Copyright (c) 2025 IETF Trust and the persons identified as the
             document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.2-2">
             This document is subject to BCP 78 and the IETF Trust's Legal
@@ -1130,91 +1149,90 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <nav class="toc"><ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
             <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
-            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-notational-conventions" class="internal xref">Notational Conventions</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
-            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-delta-query-usage-in-diverg" class="internal xref">Delta Query Usage in Divergence Detection</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1">
-                <p id="section-toc.1-1.3.2.1.1" class="keepWithNext"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-terminology" class="internal xref">Terminology</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
-                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-divergence-detection-via-fu" class="internal xref">Divergence Detection via Full Scans</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3">
-                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-divergence-detection-via-de" class="internal xref">Divergence Detection via Delta Scans</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.1">
+                <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="auto internal xref">1.1</a>.  <a href="#name-notational-conventions" class="internal xref">Notational Conventions</a></p>
 </li>
             </ul>
 </li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-definitions" class="internal xref">Definitions</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-overview" class="internal xref">Overview</a></p>
+</li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
-            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-delta-query" class="internal xref">Delta Query</a></p>
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-delta-query-components" class="internal xref">Delta Query Components</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
-                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-query-parameters-and-respon" class="internal xref">Query Parameters and Response Attributes</a></p>
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-new-path-extension-endpoint" class="internal xref">New Path Extension Endpoints</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-delta-tokens" class="internal xref">Delta Tokens</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.1">
+                    <p id="section-toc.1-1.4.2.2.2.1.1"><a href="#section-4.2.1" class="auto internal xref">4.2.1</a>.  <a href="#name-acquiring-an-initial-delta-" class="internal xref">Acquiring an initial delta token</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-listresponse-schema-extensi" class="internal xref">ListResponse Schema Extension</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4">
+                <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="auto internal xref">4.4</a>.  <a href="#name-serviceproviderconfig" class="internal xref">ServiceProviderConfig</a></p>
 </li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
-            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-using-delta-query-to-track-" class="internal xref">Using Delta Query to track changes</a></p>
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-delta-query-protocol" class="internal xref">Delta Query Protocol</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
-                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-obtaining-the-first-delta-t" class="internal xref">Obtaining the First Delta Token</a></p>
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-delta-query-requests" class="internal xref">Delta Query Requests</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
-                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-using-a-delta-token-to-perf" class="internal xref">Using a Delta Token to Perform a Delta Scan</a></p>
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-delta-query-responses" class="internal xref">Delta Query Responses</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2.2.1">
+                    <p id="section-toc.1-1.5.2.2.2.1.1"><a href="#section-5.2.1" class="auto internal xref">5.2.1</a>.  <a href="#name-change-types" class="internal xref">Change Types</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2.2.2">
+                    <p id="section-toc.1-1.5.2.2.2.2.1"><a href="#section-5.2.2" class="auto internal xref">5.2.2</a>.  <a href="#name-operations" class="internal xref">Operations</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
+                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-request-and-response-exampl" class="internal xref">Request and Response Examples</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3.2.1">
+                    <p id="section-toc.1-1.5.2.3.2.1.1"><a href="#section-5.3.1" class="auto internal xref">5.3.1</a>.  <a href="#name-requesting-changed-resource" class="internal xref">Requesting changed resources</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3.2.2">
+                    <p id="section-toc.1-1.5.2.3.2.2.1"><a href="#section-5.3.2" class="auto internal xref">5.3.2</a>.  <a href="#name-updates-from-service-provid" class="internal xref">Updates from service providers that do not support attribute-level change tracking</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3.2.3">
+                    <p id="section-toc.1-1.5.2.3.2.3.1"><a href="#section-5.3.3" class="auto internal xref">5.3.3</a>.  <a href="#name-creation-of-a-large-resourc" class="internal xref">Creation of a large resource across multiple pages</a></p>
+</li>
+                </ul>
 </li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
-            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-pagination" class="internal xref">Pagination</a></p>
-<ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
-                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-using-cursor-based-paginati" class="internal xref">Using Cursor-based Pagination During a Full Scan</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2">
-                <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="auto internal xref">6.2</a>.  <a href="#name-paginating-a-delta-scan-res" class="internal xref">Paginating a Delta Scan Response</a></p>
-<ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2.2.1">
-                    <p id="section-toc.1-1.6.2.2.2.1.1"><a href="#section-6.2.1" class="auto internal xref">6.2.1</a>.  <a href="#name-cursor-based-pagination" class="internal xref">Cursor-based Pagination</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2.2.2">
-                    <p id="section-toc.1-1.6.2.2.2.2.1"><a href="#section-6.2.2" class="auto internal xref">6.2.2</a>.  <a href="#name-consistency-consideration-w" class="internal xref">Consistency Consideration while Paginating through Delta Query Responses</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2.2.3">
-                    <p id="section-toc.1-1.6.2.2.2.3.1"><a href="#section-6.2.3" class="auto internal xref">6.2.3</a>.  <a href="#name-resource-representation-in-" class="internal xref">Resource Representation in the Delta Query Response</a></p>
-</li>
-                </ul>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.3">
-                <p id="section-toc.1-1.6.2.3.1"><a href="#section-6.3" class="auto internal xref">6.3</a>.  <a href="#name-delta-query-errors" class="internal xref">Delta Query Errors</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.4">
-                <p id="section-toc.1-1.6.2.4.1"><a href="#section-6.4" class="auto internal xref">6.4</a>.  <a href="#name-filtering" class="internal xref">Filtering</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.5">
-                <p id="section-toc.1-1.6.2.5.1"><a href="#section-6.5" class="auto internal xref">6.5</a>.  <a href="#name-sorting" class="internal xref">Sorting</a></p>
-</li>
-            </ul>
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
-            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-delta-query-using-http-post" class="internal xref">Delta Query using HTTP POST</a></p>
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
-            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-service-provider-configurat" class="internal xref">Service Provider Configuration</a></p>
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-acknowledgements" class="internal xref">Acknowledgements</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
-            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-add-normative-references" class="internal xref">ADD NORMATIVE REFERENCES</a></p>
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-other" class="internal xref">Other</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
-            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-acknowledgements" class="internal xref">Acknowledgements</a></p>
+            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-normative-references" class="internal xref">Normative References</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
-            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-normative-references" class="internal xref">Normative References</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
-            <p id="section-toc.1-1.12.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
+            <p id="section-toc.1-1.11.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
 </li>
         </ul>
 </nav>
@@ -1225,109 +1243,199 @@ svg :is([fill="white"], [fill^="#fff"]) {
       <h2 id="name-introduction">
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
-<p id="section-1-1">The document describes additions to the SCIM standard to provide a scalable and accurate method of change detection that allows a SCIM client to retrieve the current state of all resources that have changed since a prior point in time. Some of the possible use cases where this can be used is building identity reconciliation systems or incremental synchronization systems where a client periodically pulls data from the server. For example, synchronizing data from human capital management systems into a central identity management service.<a href="#section-1-1" class="pilcrow">¶</a></p>
-<p id="section-1-2">SCIM clients provision identity information such as Users, Groups and memberships to SCIM service providers that is then used for authorization decisions when attempts to access resources occur. Potential synchronization inaccuracies could lead to data divergence between the SCIM client and SCIM service provider. Undetected diverging data between a SCIM client and SCIM service provider can lead to undesirable authorization decisions. For instance, an undetected failure to synchronize group membership removal between a SCIM client and a SCIM service provider can lead to access being incorrectly granted to an application that should no longer be allowed. The SCIM standard does not provide any guidance for performing ongoing incremental data reconciliation or synchronization, and the existing functionality in the SCIM standard does not meet the accuracy, efficiency or scalability requirements of many implementers.<a href="#section-1-2" class="pilcrow">¶</a></p>
-<p id="section-1-3">A set of end-to-end reconciliation processes, reduces the risk of incorrect authorization decisions due to divergent states between client and server. Providing a mechanism to detect data divergence and reconciliation mechanism is of the utmost importance to avoid any authorization decisions being made with incorrect data. This data divergence detection may be used for reporting purposes or may be extended to either trigger provisioning of those resources in the target system or pulling changes from the target system into the source.<a href="#section-1-3" class="pilcrow">¶</a></p>
-<p id="section-1-4">This document proposes additions to the SCIM standard that can be implemented across SCIM service providers over time, allowing SCIM clients to build synchronization and reconciliation mechanisms that they can reuse across all SCIM service providers that support the capabilities proposed in this document. The logic for divergence detection as part of any synchronization or reconciliation mechanism is out of scope of this document and is left to the implementer.<a href="#section-1-4" class="pilcrow">¶</a></p>
-</section>
-</div>
+<p id="section-1-1">Adoption of SCIM 2.0 has trended strongly in favor of "push" model implementations where SCIM clients push data to SCIM service providers. Scenarios reliant on a client regularly retrieving, or "pulling", data regarding a large number of resources from a service provider have faced challenges at scale. One of the challenges facing SCIM client implementers when trying to retrieve data from service providers is that there are limited options to improve efficiency by only retrieving resources that have changed since they were last observed by the client. ETags and the SCIM meta.lastModified attribute are sometimes considered as options here, but both have limitations and have not seen widespread adoption for use in tracking changes in SCIM.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">This document aims to alleviate the efficiency problems related to not being able to omit unchanged resources from query responses by introducing extensions to the SCIM 2.0 protocol functionality to query for responses that only contain SCIM resources that have changed since an earlier time. The concept of retrieving only new changes exists in numerous other APIs and databases, but does not exist in the core SCIM 2.0 specifications. By improving SCIM's functionality in this area, scenarios reliant on clients pulling large amounts of data on a regular basis can be made significantly more efficient, lowering resource consumption for service providers and clients to return and parse query responses, respectively.<a href="#section-1-2" class="pilcrow">¶</a></p>
 <div id="notational-conventions">
-<section id="section-2">
-      <h2 id="name-notational-conventions">
-<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-notational-conventions" class="section-name selfRef">Notational Conventions</a>
-      </h2>
-<p id="section-2-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+<section id="section-1.1">
+        <h3 id="name-notational-conventions">
+<a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-notational-conventions" class="section-name selfRef">Notational Conventions</a>
+        </h3>
+<p id="section-1.1-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
 "<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
 described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
-appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
+appear in all capitals, as shown here.<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+<p id="section-1.1-2">This document utilizes line folding within JSON examples using a single backslash ('') character as outlined in <span>[<a href="#RFC8792" class="cite xref">RFC8792</a>]</span>.<a href="#section-1.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="delta-query-usage-in-divergence-detection">
+</section>
+</div>
+<div id="definitions">
+<section id="section-2">
+      <h2 id="name-definitions">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-definitions" class="section-name selfRef">Definitions</a>
+      </h2>
+<span class="break"></span><dl class="dlParallel" id="section-2-1">
+        <dt id="section-2-1.1">Delta Token</dt>
+        <dd style="margin-left: 1.5em" id="section-2-1.2">
+          <p id="section-2-1.2.1">An opaque value issued by the SCIM service provider that provides a point of reference for the service provider to later return representations of resources that were changed after the point that the token's value references.<a href="#section-2-1.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-1.3">Change / Changed Resource</dt>
+        <dd style="margin-left: 1.5em" id="section-2-1.4">
+          <p id="section-2-1.4.1">A SCIM resource that has been created, deleted, or updated.<a href="#section-2-1.4.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="overview">
 <section id="section-3">
-      <h2 id="name-delta-query-usage-in-diverg">
-<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-delta-query-usage-in-diverg" class="section-name selfRef">Delta Query Usage in Divergence Detection</a>
+      <h2 id="name-overview">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-overview" class="section-name selfRef">Overview</a>
       </h2>
-<div id="terminology">
-<section id="section-3.1">
-        <h3 id="name-terminology">
-<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-terminology" class="section-name selfRef">Terminology</a>
-        </h3>
-<p id="section-3.1-1">Full Scan - Retrieval of the current state of all resources that exist without providing a delta token or timestamp-based restriction on which resources should be returned. This may be a request such as GET /Users to retrieve all User resources, GET (baseurl)/ to retrieve all resources regardless of type, or a query with a filter such as GET /Users?filter=department eq "Accounting".<a href="#section-3.1-1" class="pilcrow">¶</a></p>
-<p id="section-3.1-2">Delta Scan - Retrieval of the current state of all resources modified (created, updated, deleted) since a previous full or delta Scan that returned a delta token.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
-<p id="section-3.1-3">Delta Token - An opaque artifact generated by the server and provides a point of reference that can be used by the issuing SCIM service provider to identify a point after which modified (created, updated or deleted) resources should be returned.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
-<p id="section-3.1-4">SCIM Client -
-An HTTP client that initiates SCIM Protocol <span>[<a href="#RFC7644" class="cite xref">RFC7644</a>]</span> requests and receives responses.<a href="#section-3.1-4" class="pilcrow">¶</a></p>
-<p id="section-3.1-5">SCIM Service Provider -
-An HTTP server that implements SCIM Protocol <span>[<a href="#RFC7644" class="cite xref">RFC7644</a>]</span> and SCIM Schema <span>[<a href="#RFC7643" class="cite xref">RFC7643</a>]</span>.<a href="#section-3.1-5" class="pilcrow">¶</a></p>
+<p id="section-3-1">The delta query functionality defined in this document is intended to function as follows:<a href="#section-3-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3-2.1">
+          <p id="section-3-2.1.1">The SCIM client obtains a delta token from a SCIM service provider.<a href="#section-3-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-2.2">
+          <p id="section-3-2.2.1">The SCIM client makes a query against the SCIM service provider that contains the delta token.<a href="#section-3-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-2.3">
+          <p id="section-3-2.3.1">The SCIM service provider responds with all resources that match the query parameters and have changed since the provided delta token was issued.<a href="#section-3-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-2.4">
+          <p id="section-3-2.4.1">The SCIM service provider includes a new delta token with the final page of results it returns.<a href="#section-3-2.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-2.5">
+          <p id="section-3-2.5.1">The SCIM client then optionally uses the newly provided delta token to repeat this process at a future time.<a href="#section-3-2.5.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
 </section>
 </div>
-<div id="divergence-detection-via-full-scans">
-<section id="section-3.2">
-        <h3 id="name-divergence-detection-via-fu">
-<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-divergence-detection-via-fu" class="section-name selfRef">Divergence Detection via Full Scans</a>
-        </h3>
-<p id="section-3.2-1">A simplistic implementation of a divergence detection tool may perform a full comparison of data between source and destination systems containing identity data. To do this, the divergence detection tool can perform a full Scan of all resources in both systems and then perform the following checks. First it will evaluate if there are any resources (Users, Groups..) in one of the systems that are missing in the other one, and then it will evaluate if attribute values for any resources present in both the source and destination systems have different values.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
-<p id="section-3.2-2">This simplistic solution can iterate across all of the resources in the source and destination systems and perform detailed data comparison, providing the highest accuracy. However, the speed at which this can be performed will be limited by factors such as system capacity, scheduling algorithms, API page sizes, and throughput limits. This makes an approach that utilizes only full Scans too slow (hours/days) for datasets spanning millions of resources, causing delayed detection of any data divergence. For instance, a data divergence check for a directory with 10 million resources could require 3 hours to scan one of the systems, while divergence detection within 30 to 60 minutes would be more optimal. To address this challenge for larger datasets, the approach utilizing only full Scans can be amended with an additional set of recurring delta Scans that would identify divergence in recently modified resources.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="divergence-detection-via-delta-scans">
-<section id="section-3.3">
-        <h3 id="name-divergence-detection-via-de">
-<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-divergence-detection-via-de" class="section-name selfRef">Divergence Detection via Delta Scans</a>
-        </h3>
-<p id="section-3.3-1">A recurring set of delta Scans can be used to provide ongoing detection of of data divergence between source and destination systems. Each individual delta Scan will only retrieve data that has been modified after the issuance of the delta token value used by the SCIM client. Continuous successful delta Scans run over a given period of time allows for ongoing detection of data modified within that period. The process can be used to incrementally retrieve changes and identify and repair any divergences as needed, with only delta Scans being required after the first full Scan.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
-<p id="section-3.3-2">A delta Scan can be done using the Delta Query functionality introduced in this document. The aim of these additions is to allow the client to instruct the service provider to only return the current state of objects that have changed (newly added, updated or deleted) since the issuance of the delta token provided by the client.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
-</section>
-</div>
-</section>
-</div>
-<div id="delta-query">
+<div id="delta-query-components">
 <section id="section-4">
-      <h2 id="name-delta-query">
-<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-delta-query" class="section-name selfRef">Delta Query</a>
+      <h2 id="name-delta-query-components">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-delta-query-components" class="section-name selfRef">Delta Query Components</a>
       </h2>
-<p id="section-4-1">A Delta Query is a query performed on underlying SCIM resources that enables the client to discover newly created, updated, or deleted resources without performing a full Scan from the server. This approach uses a delta token generated by a SCIM service provider. The delta token is an opaque artifact, or "watermark". It provides a point of reference that can be used by the issuing SCIM service provider to identify a point after which modified (created, updated or deleted) resources should be returned.<a href="#section-4-1" class="pilcrow">¶</a></p>
-<div id="query-parameters-and-response-attributes">
+<p id="section-4-1">This document defines extensions to existing schemas defined in the SCIM 2.0 specifications <span>[<a href="#RFC7643" class="cite xref">RFC7643</a>]</span> and <span>[<a href="#RFC7644" class="cite xref">RFC7644</a>]</span> and introduces endpoints, query parameters and protocol elements.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<div id="new-path-extension-endpoints">
 <section id="section-4.1">
-        <h3 id="name-query-parameters-and-respon">
-<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-query-parameters-and-respon" class="section-name selfRef">Query Parameters and Response Attributes</a>
+        <h3 id="name-new-path-extension-endpoint">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-new-path-extension-endpoint" class="section-name selfRef">New Path Extension Endpoints</a>
         </h3>
-<p id="section-4.1-1">The following table describes the URL query parameters for delta query requests:<a href="#section-4.1-1" class="pilcrow">¶</a></p>
-<span id="name-query-parameters"></span><table class="center" id="table-1">
-          <caption>
-<a href="#table-1" class="selfRef">Table 1</a>:
-<a href="#name-query-parameters" class="selfRef">Query Parameters</a>
-          </caption>
+<p id="section-4.1-1">This document defines a set of extensions to the list of SCIM endpoints in <span><a href="https://rfc-editor.org/rfc/rfc7644#section-3.2" class="relref">Section 3.2</a> of [<a href="#RFC7644" class="cite xref">RFC7644</a>]</span>. The following endpoints are added to the list:<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<table class="center" id="table-1">
+          <caption><a href="#table-1" class="selfRef">Table 1</a></caption>
 <thead>
             <tr>
-              <th class="text-left" rowspan="1" colspan="1">Parameter</th>
+              <th class="text-left" rowspan="1" colspan="1">Resource</th>
+              <th class="text-left" rowspan="1" colspan="1">Endpoint</th>
+              <th class="text-left" rowspan="1" colspan="1">Operations</th>
               <th class="text-left" rowspan="1" colspan="1">Description</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td class="text-left" rowspan="1" colspan="1">deltaQuery</td>
-              <td class="text-left" rowspan="1" colspan="1">A boolean that indicates that the client is requesting the server to execute a full scan or delta scan and return a delta token with its response.</td>
+              <td class="text-left" rowspan="1" colspan="1">Delta Token</td>
+              <td class="text-left" rowspan="1" colspan="1">[prefix]/.deltaToken</td>
+              <td class="text-left" rowspan="1" colspan="1">GET</td>
+              <td class="text-left" rowspan="1" colspan="1">Acquire a delta token.</td>
             </tr>
             <tr>
-              <td class="text-left" rowspan="1" colspan="1">deltaToken</td>
-              <td class="text-left" rowspan="1" colspan="1">A string that may be provided by the client to request only records modified after the point represented by the delta token's value. The value of deltaToken <span class="bcp14">MUST</span> be treated as opaque by the client. Token values must follow the unreserved characters set defined in section 2.3 of <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>.</td>
+              <td class="text-left" rowspan="1" colspan="1">Delta Query</td>
+              <td class="text-left" rowspan="1" colspan="1">[prefix]/.delta</td>
+              <td class="text-left" rowspan="1" colspan="1">POST</td>
+              <td class="text-left" rowspan="1" colspan="1">Search from system root or within a resource endpoint for resources that have changed since the acquisition of the delta token.</td>
             </tr>
           </tbody>
         </table>
-<p id="section-4.1-3">The following attribute is added to the schema of urn:ietf:params:scim:api:messages:2.0:ListResponse.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-4.1-4">
-          <dt id="section-4.1-4.1">nextDeltaToken</dt>
-          <dd style="margin-left: 1.5em" id="section-4.1-4.2">
-            <p id="section-4.1-4.2.1">A string that <span class="bcp14">MUST</span> be returned by the server on the last page during a delta query response. If the SCIM service provider supports delta query, this attribute <span class="bcp14">MUST</span> be returned by a when the query parameter deltaQuery is True. Values must only contain characters from the unreserved characters set defined in section 2.3 of <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>.<a href="#section-4.1-4.2.1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="delta-tokens">
+<section id="section-4.2">
+        <h3 id="name-delta-tokens">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-delta-tokens" class="section-name selfRef">Delta Tokens</a>
+        </h3>
+<p id="section-4.2-1">Delta tokens may be returned from HTTP requests to the /.deltaToken path extension preceded by a SCIM resource endpoint (e.g.: /Users) or the server root. Delta tokens can also be returned as part of the service provider's response to a query redeeming another delta token.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.2-2">Delta tokens provided in response to /.deltaToken requests against the server root <span class="bcp14">MUST</span> be valid for delta query requests made against all resource types on the service provider that support delta query. Delta tokens provided in response to a /.deltaToken request against a specific SCIM resource endpoint are only required to be valid for requests made against that specific resource endpoint.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
+<p id="section-4.2-3">Response to /.deltaToken requests <span class="bcp14">MUST</span> be identified using the following URI: "urn:ietf:params:scim:api:messages:2.0:delta:token". The following single-valued attributes are defined for responses:<a href="#section-4.2-3" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.2-4">
+          <dt id="section-4.2-4.1">value</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-4.2">
+            <p id="section-4.2-4.2.1">A string value containing a delta token.  <span class="bcp14">REQUIRED</span>.<a href="#section-4.2-4.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.2-4.3">expiry</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-4.4">
+            <p id="section-4.2-4.4.1">A dateTime value representing the time that the delta token value will be valid until. Service providers <span class="bcp14">SHOULD</span> attempt to provide an accurate expiry value. Service providers <span class="bcp14">MAY</span> have implementation-specific logic that invalidates delta tokens prior to the provided expiry time.  <span class="bcp14">RECOMMENDED</span>.<a href="#section-4.2-4.4.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
-<p id="section-4.1-5">The following attribute is added to the sub-attributes of the common attribute "meta".<a href="#section-4.1-5" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-4.1-6">
-          <dt id="section-4.1-6.1">isDeleted</dt>
-          <dd style="margin-left: 1.5em" id="section-4.1-6.2">
-            <p id="section-4.1-6.2.1">A boolean. This attribute <span class="bcp14">MUST</span> be returned and <span class="bcp14">MUST</span> have a value of True when the resource has been deleted from the SCIM service provider and is being returned as part of a delta query response. This attribute has a "returned" property value of "request" when the associated resource has not been deleted.<a href="#section-4.1-6.2.1" class="pilcrow">¶</a></p>
+<div id="acquiring-an-initial-delta-token">
+<section id="section-4.2.1">
+          <h4 id="name-acquiring-an-initial-delta-">
+<a href="#section-4.2.1" class="section-number selfRef">4.2.1. </a><a href="#name-acquiring-an-initial-delta-" class="section-name selfRef">Acquiring an initial delta token</a>
+          </h4>
+<p id="section-4.2.1-1">A client wishing to obtain an initial delta token from a service provider that supports delta query can make a GET request to the /.deltaToken endpoint, as shown in the below example:<a href="#section-4.2.1-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.2.1-2">
+<pre>
+GET Users/.deltaToken
+Host: example.com
+Accept: application/scim+json
+Authorization: Bearer foo
+</pre><a href="#section-4.2.1-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.2.1-3">The service provider's response would return a token similar to the following example:<a href="#section-4.2.1-3" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.2.1-4">
+<pre>
+HTTP/1.1 200 OK
+Content-Type: application/scim+json
+
+{
+    "schemas":"urn:ietf:params:scim:api:messages:2.0:delta:token",
+    "value":"eyJkZWx0YVRva2VuIjoiQVJkZmF",
+    "expiry":"2019-06-25T06:00:00Z"
+}
+</pre><a href="#section-4.2.1-4" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="listresponse-schema-extension">
+<section id="section-4.3">
+        <h3 id="name-listresponse-schema-extensi">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-listresponse-schema-extensi" class="section-name selfRef">ListResponse Schema Extension</a>
+        </h3>
+<p id="section-4.3-1">This document adds the following single-valued attribute to the "urn:ietf:params:scim:api:messages:2.0:ListResponse" schema defined in <span><a href="https://rfc-editor.org/rfc/rfc7644#section-3.4.2" class="relref">Section 3.4.2</a> of [<a href="#RFC7644" class="cite xref">RFC7644</a>]</span>.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.3-2">
+          <dt id="section-4.3-2.1">nextDeltaToken</dt>
+          <dd style="margin-left: 1.5em" id="section-4.3-2.2">
+            <p id="section-4.3-2.2.1">A complex type representing the next delta token issued by the service provider. The sub-attributes of nextDeltaToken are "value" and "expiry" and carry the same descriptions and requirements as the matching attributes defined in the urn:ietf:params:scim:api:messages:2.0:delta:token schema in the Delta Tokens section of this document.<a href="#section-4.3-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-4.3-3">The nextDeltaToken attribute is included in the response to a query made with another delta token. The value of a delta token returned in this attribute <span class="bcp14">MUST</span> reference the point at which the final page of changed resources was returned by the service provider. This attribute <span class="bcp14">MUST NOT</span> be returned prior to the final page of changed resources and <span class="bcp14">MUST</span> be returned on the final page.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="serviceproviderconfig">
+<section id="section-4.4">
+        <h3 id="name-serviceproviderconfig">
+<a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-serviceproviderconfig" class="section-name selfRef">ServiceProviderConfig</a>
+        </h3>
+<p id="section-4.4-1">This document adds the following complex attribute to the ServiceProviderConfig resource defined in <span><a href="https://rfc-editor.org/rfc/rfc7644#section-4" class="relref">Section 4</a> of [<a href="#RFC7644" class="cite xref">RFC7644</a>]</span>.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.4-2">
+          <dt id="section-4.4-2.1">DeltaQuery</dt>
+          <dd style="margin-left: 1.5em" id="section-4.4-2.2">
+            <p id="section-4.4-2.2.1">A complex attribute that indicates advertised delta query configuration options.  <span class="bcp14">REQUIRED</span>.<a href="#section-4.4-2.2.1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.4-2.2.2">
+              <dt id="section-4.4-2.2.2.1">supported</dt>
+              <dd style="margin-left: 1.5em" id="section-4.4-2.2.2.2">
+                <p id="section-4.4-2.2.2.2.1">A Boolean type indicating if the service provider supports delta query.  <span class="bcp14">REQUIRED</span>.<a href="#section-4.4-2.2.2.2.1" class="pilcrow">¶</a></p>
+</dd>
+              <dd class="break"></dd>
+<dt id="section-4.4-2.2.2.3">deltaTokenExpiry</dt>
+              <dd style="margin-left: 1.5em" id="section-4.4-2.2.2.4">
+                <p id="section-4.4-2.2.2.4.1">A positive integer specifying the maximum number of seconds that a delta token is anticipated to be accepted by the service provider after being issued. Service providers that do not provide values for the "expiry" delta token attribute <span class="bcp14">MUST</span> advertise an estimated delta token lifetime in this attribute. Service providers that do not have a globally consistent lifetime for issued delta tokens <span class="bcp14">SHOULD</span> use the "expiry" value on each delta token instead.  <span class="bcp14">OPTIONAL</span>.<a href="#section-4.4-2.2.2.4.1" class="pilcrow">¶</a></p>
+</dd>
+              <dd class="break"></dd>
+<dt id="section-4.4-2.2.2.5">supportedResources</dt>
+              <dd style="margin-left: 1.5em" id="section-4.4-2.2.2.6">
+                <p id="section-4.4-2.2.2.6.1">A multi-valued string type indicating what resources on the service provider support returning changes via delta query. Values <span class="bcp14">MUST</span> be either 'ServerRoot' or names of resource types that exist on the service provider, e.g., 'User' or 'Group'.  <span class="bcp14">OPTIONAL</span>.<a href="#section-4.4-2.2.2.6.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+</dl>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -1335,507 +1443,696 @@ An HTTP server that implements SCIM Protocol <span>[<a href="#RFC7644" class="ci
 </div>
 </section>
 </div>
-<div id="using-delta-query-to-track-changes">
+<div id="delta-query-protocol">
 <section id="section-5">
-      <h2 id="name-using-delta-query-to-track-">
-<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-using-delta-query-to-track-" class="section-name selfRef">Using Delta Query to track changes</a>
+      <h2 id="name-delta-query-protocol">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-delta-query-protocol" class="section-name selfRef">Delta Query Protocol</a>
       </h2>
-<div id="obtaining-the-first-delta-token">
+<div id="delta-query-requests">
 <section id="section-5.1">
-        <h3 id="name-obtaining-the-first-delta-t">
-<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-obtaining-the-first-delta-t" class="section-name selfRef">Obtaining the First Delta Token</a>
+        <h3 id="name-delta-query-requests">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-delta-query-requests" class="section-name selfRef">Delta Query Requests</a>
         </h3>
-<p id="section-5.1-1">A client will typically prepare for establishing recurring delta query requests by first performing a full Scan on the SCIM service provider. The GET request used for the initial full Scan <span class="bcp14">MUST</span> include the deltaQuery parameter and <span class="bcp14">MUST</span> not include the deltaToken parameter.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
-<p id="section-5.1-2">In response to the full scan query the server<a href="#section-5.1-2" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-5.1-3">
-<li id="section-5.1-3.1">
-            <p id="section-5.1-3.1.1"><span class="bcp14">MUST</span> return the resources that currently exist in the collection. Resources that have been created and deleted prior to the initial full scan query won't be returned. Resources returned will represent the latest state of the resource at the time processing of the request.<a href="#section-5.1-3.1.1" class="pilcrow">¶</a></p>
+<p id="section-5.1-1">A client can use a previously obtained delta token to request information about changes that have occurred to the service provider's identity data since the delta token was issued. Clients attempting to make a delta query request <span class="bcp14">MUST</span> use the HTTP POST verb combined with the "/.delta" path extension. service providers <span class="bcp14">MAY</span> implement support for delta query requests against only certain resource types. Service providers <span class="bcp14">MUST</span> allow delta query requests to be made against resource endpoints (e.g.: /Users) that support delta query, and <span class="bcp14">MAY</span> allow requests to be made against the root of the server. The "/.delta" path extension <span class="bcp14">MAY</span> be appended to the end of a valid SCIM resource URL or the SCIM server root. For example:<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">/Users/.delta<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+<p id="section-5.1-3">&lt;baseUrl&gt;/.delta<a href="#section-5.1-3" class="pilcrow">¶</a></p>
+<p id="section-5.1-4">POST requests to /.delta <span class="bcp14">MUST</span> be identified using the URI "urn:ietf:params:scim:api:messages:2.0:delta:request". The schema of this query format includes the attributes defined in <span><a href="https://rfc-editor.org/rfc/rfc7644#section-3.4.3" class="relref">Section 3.4.3</a> of [<a href="#RFC7644" class="cite xref">RFC7644</a>]</span> for the urn:ietf:params:scim:api:messages:2.0:SearchRequest schema, any additional attributes added to the SearchRequest schema by other future SCIM 2.0 specifications, and the following additional single-valued attribute:<a href="#section-5.1-4" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-5.1-5">
+          <dt id="section-5.1-5.1">deltaToken</dt>
+          <dd style="margin-left: 1.5em" id="section-5.1-5.2">
+            <p id="section-5.1-5.2.1">The string value of a delta token previously issued by the service provider. The delta token value provided by the client <span class="bcp14">MUST</span> remain the same while paging through a response that extends across more than one page of results.  <span class="bcp14">REQUIRED</span>.<a href="#section-5.1-5.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-5.1-6">Service providers responding to a delta query request <span class="bcp14">MUST</span> return all resources that meet the following criteria:<a href="#section-5.1-6" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.1-7.1">
+            <p id="section-5.1-7.1.1">Changed since the provided delta token was issued<a href="#section-5.1-7.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-5.1-3.2">
-            <p id="section-5.1-3.2.1"><span class="bcp14">MUST</span> Return the nextDeltaToken on the last page of the full scan response.<a href="#section-5.1-3.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-5.1-7.2">
+            <p id="section-5.1-7.2.1">Match all applied query filters<a href="#section-5.1-7.2.1" class="pilcrow">¶</a></p>
 </li>
-        </ol>
-<div class="alignLeft art-text artwork" id="section-5.1-4">
-<pre>
-GET Users?deltaQuery&amp;count=50
-Host: example.com
-Accept: application/scim+json
-Authorization: Bearer U8YJcYYRMjbGeepD
-
-HTTP/1.1 200 OK
-Content-Type: application/scim+json
-{
-  "totalResults":45,
-  "itemsPerPage":50,
-  "nextDeltaToken": "VTHKLOUTREO",
-  "schemas": ["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
-  "Resources": [{
-    ...
-  }]
-}
-</pre><a href="#section-5.1-4" class="pilcrow">¶</a>
-</div>
+          <li class="normal" id="section-5.1-7.3">
+            <p id="section-5.1-7.3.1">The client is authorized to read the resource<a href="#section-5.1-7.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-5.1-8">Services providers <span class="bcp14">SHALL</span> evaluate all query parameters specified in a delta query request against the attribute values of the underlying SCIM resource and not the attributes or values of any delta query API message schemas.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="using-a-delta-token-to-perform-a-delta-scan">
+<div id="delta-query-responses">
 <section id="section-5.2">
-        <h3 id="name-using-a-delta-token-to-perf">
-<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-using-a-delta-token-to-perf" class="section-name selfRef">Using a Delta Token to Perform a Delta Scan</a>
+        <h3 id="name-delta-query-responses">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-delta-query-responses" class="section-name selfRef">Delta Query Responses</a>
         </h3>
-<p id="section-5.2-1">After a full Scan, the nextDeltaToken value returned by the service provider may be used by the client to perform a delta Scan, querying for resources modified since the issuance of the delta token. The GET request used for the delta Scan <span class="bcp14">MUST</span> include the deltaQuery parameter and <span class="bcp14">MUST</span> include the deltaToken parameter.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
-<p id="section-5.2-2">In response to the delta scan query the server<a href="#section-5.2-2" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-5.2-3">
-<li id="section-5.2-3.1">
-            <p id="section-5.2-3.1.1"><span class="bcp14">MUST</span> Return the resources modified (created, updated or deleted) after the point represented by the delta token's value. The resources returned are represented in the response using their standard representation and reflect their current state.<a href="#section-5.2-3.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-5.2-3.2">
-            <p id="section-5.2-3.2.1"><span class="bcp14">MUST</span> Return the nextDeltaToken on the last page of the delta scan response.<a href="#section-5.2-3.2.1" class="pilcrow">¶</a></p>
-</li>
-        </ol>
-<div class="alignLeft art-text artwork" id="section-5.2-4">
-<pre>
-GET Users?deltaQuery&amp;deltaToken=VTHKLOUTREO&amp;count=50
-Host: example.com
-Accept: application/scim+json
-Authorization: Bearer U8YJcYYRMjbGeepD
-
-HTTP/1.1 200 OK
-Content-Type: application/scim+json
-{
-  "totalResults":13,
-  "itemsPerPage":50,
-  "nextDeltaToken": "OPUTREWSFDE",
-  "schemas": ["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
-  "Resources": [{
-    ...
-  }]
-}
-</pre><a href="#section-5.2-4" class="pilcrow">¶</a>
-</div>
-<p id="section-5.2-5">In the above example request and response, the query used in the full Scan example was repeated with the addition of the deltaToken parameter and the value of the delta token provided in the response to the full Scan via the nextDeltaToken attribute.<a href="#section-5.2-5" class="pilcrow">¶</a></p>
-</section>
-</div>
-</section>
-</div>
-<div id="pagination">
-<section id="section-6">
-      <h2 id="name-pagination">
-<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-pagination" class="section-name selfRef">Pagination</a>
-      </h2>
-<div id="using-cursor-based-pagination-during-a-full-scan">
-<section id="section-6.1">
-        <h3 id="name-using-cursor-based-paginati">
-<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-using-cursor-based-paginati" class="section-name selfRef">Using Cursor-based Pagination During a Full Scan</a>
-        </h3>
-<p id="section-6.1-1">When the total number of resources returned by the query is large enough, a paginated response may be required. In this scenario, a service provider supporting cursor-based pagination <span class="bcp14">MAY</span> return a value for the nextCursor attribute. The cursor can then be used by a client in a subsequent request to obtain the next page of results.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-6.1-2">
-<pre>
-GET Users?deltaQuery&amp;count=50
-Host: example.com
-Accept: application/scim+json
-Authorization: Bearer U8YJcYYRMjbGeepD
-
-HTTP/1.1 200 OK
-Content-Type: application/scim+json
-{
-  "totalResults":457,
-  "itemsPerPage":50,
-  "nextCursor": "CVHNJKUYFRT",
-  "schemas": ["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
-  "Resources": [{
-    ...
-  }]
-}
-</pre><a href="#section-6.1-2" class="pilcrow">¶</a>
-</div>
-<p id="section-6.1-3">When the client is ready to retrieve the next page of results it <span class="bcp14">SHOULD</span> query the same service provider endpoint with all query parameters and values remaining identical to the initial query with the exception of the cursor parameter and its value.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-6.1-4">
-<pre>
-GET Users?deltaQuery&amp;count=50&amp;cursor=CVHNJKUYFRT
-Host: example.com
-Accept: application/scim+json
-Authorization: Bearer U8YJcYYRMjbGeepD
-
-HTTP/1.1 200 OK
-Content-Type: application/scim+json
-{
-  "totalResults":457,
-  "itemsPerPage":50,
-  "previousCursor:"CVHNJKUYFRT",
-  "nextDeltaToken":VTHKLOUTREO",
-  "schemas": ["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
-  "Resources": [{
-    ...
-  }]
-}
-</pre><a href="#section-6.1-4" class="pilcrow">¶</a>
-</div>
-</section>
-</div>
-<div id="paginating-a-delta-scan-response">
-<section id="section-6.2">
-        <h3 id="name-paginating-a-delta-scan-res">
-<a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-paginating-a-delta-scan-res" class="section-name selfRef">Paginating a Delta Scan Response</a>
-        </h3>
-<div id="cursor-based-pagination">
-<section id="section-6.2.1">
-          <h4 id="name-cursor-based-pagination">
-<a href="#section-6.2.1" class="section-number selfRef">6.2.1. </a><a href="#name-cursor-based-pagination" class="section-name selfRef">Cursor-based Pagination</a>
+<p id="section-5.2-1">This document defines a new "delta query response" SCIM message format that is returned by the service provider in the "Resources" collection in a ListResponse message. The delta query response message schema is a wrapper that contains full or partial representations of changed SCIM resources. Delta query responses consist of information about the change as well as a representation of the changed resource in either of two formats. The "operations" attribute contains one or more complex objects that represent changes to specific attributes on the resource, whereas the "data" attribute can be used to provide a traditional SCIM representation of the changed resource without specifying what attributes have changed. Delta query responses <span class="bcp14">MUST</span> be identified using the following URI: "urn:ietf:params:scim:api:messages:2.0:delta:response".<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2-2">The following single-valued attributes are defined in this schema:<a href="#section-5.2-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-5.2-3">
+          <dt id="section-5.2-3.1">resourceType</dt>
+          <dd style="margin-left: 1.5em" id="section-5.2-3.2">
+            <p id="section-5.2-3.2.1">The resource type of the changed resource represented by the delta.  <span class="bcp14">REQUIRED</span>.<a href="#section-5.2-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.2-3.3">changeType</dt>
+          <dd style="margin-left: 1.5em" id="section-5.2-3.4">
+            <p id="section-5.2-3.4.1">A string representing what type of change has occurred.  Allowed values are "create", "update", and "delete".  <span class="bcp14">REQUIRED</span>.<a href="#section-5.2-3.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.2-3.5">changedResourceId</dt>
+          <dd style="margin-left: 1.5em" id="section-5.2-3.6">
+            <p id="section-5.2-3.6.1">A string representing the 'id' value of the changed resource.  <span class="bcp14">REQUIRED</span>.<a href="#section-5.2-3.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.2-3.7">data</dt>
+          <dd style="margin-left: 1.5em" id="section-5.2-3.8">
+            <p id="section-5.2-3.8.1">A complex object containing the changed resource.  <span class="bcp14">REQUIRED</span> if "operations" is null. <span class="bcp14">MUST NOT</span> be returned if "operations" is not null.<a href="#section-5.2-3.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-5.2-4">The following multi-valued attribute is defined in this schema:<a href="#section-5.2-4" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-5.2-5">
+          <dt id="section-5.2-5.1">operations</dt>
+          <dd style="margin-left: 1.5em" id="section-5.2-5.2">
+            <p id="section-5.2-5.2.1">A complex object representing the attribute-level changes that have occurred on the changed resource. <span class="bcp14">REQUIRED</span> if "data" is null". <span class="bcp14">MUST NOT</span> be returned if "data" is not null. This attribute has the following sub-attributes:<a href="#section-5.2-5.2.1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-5.2-5.2.2">
+              <dt id="section-5.2-5.2.2.1">op</dt>
+              <dd style="margin-left: 1.5em" id="section-5.2-5.2.2.2">
+                <p id="section-5.2-5.2.2.2.1">A string that states what type of update has occurred. The possible values are aligned to the SCIM PATCH semantics defined in <span><a href="https://rfc-editor.org/rfc/rfc7644#section-3.5.2" class="relref">Section 3.5.2</a> of [<a href="#RFC7644" class="cite xref">RFC7644</a>]</span>. Allowed values are "add", "replace", and "remove".  <span class="bcp14">REQUIRED</span>.<a href="#section-5.2-5.2.2.2.1" class="pilcrow">¶</a></p>
+</dd>
+              <dd class="break"></dd>
+<dt id="section-5.2-5.2.2.3">path</dt>
+              <dd style="margin-left: 1.5em" id="section-5.2-5.2.2.4">
+                <p id="section-5.2-5.2.2.4.1">A string following the SCIM attribute notation and attribute path rules, representing the attribute that was updated. Supports attribute path filters as defined in <span><a href="https://rfc-editor.org/rfc/rfc7644#section-3.5.2" class="relref">Section 3.5.2</a> of [<a href="#RFC7644" class="cite xref">RFC7644</a>]</span>.  <span class="bcp14">OPTIONAL</span>.<a href="#section-5.2-5.2.2.4.1" class="pilcrow">¶</a></p>
+</dd>
+              <dd class="break"></dd>
+<dt id="section-5.2-5.2.2.5">value</dt>
+              <dd style="margin-left: 1.5em" id="section-5.2-5.2.2.6">
+                <p id="section-5.2-5.2.2.6.1">The new value(s) that the attribute or attribute value(s) specified in the path sub-attribute have been updated to contain.  <span class="bcp14">REQUIRED</span> when the value of "op" is "add" or "replace". <span class="bcp14">MUST NOT</span> be returned if the value of "op" is "remove".<a href="#section-5.2-5.2.2.6.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+</dl>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-5.2-6">Service providers <span class="bcp14">SHOULD NOT</span> return multiple delta query responses for the same changed resource in the same page of results. When returning attribute changes via the "operations" attribute, service providers <span class="bcp14">MAY</span> distribute attribute changes for a single changed resource between multiple delta query responses across multiple pages. Splitting attribute changes across multiple pages allows for resources with multi-valued attributes such as the group resource's "members" attribute to return all changes while maintaining smaller and more consistent page sizes.<a href="#section-5.2-6" class="pilcrow">¶</a></p>
+<div id="change-types">
+<section id="section-5.2.1">
+          <h4 id="name-change-types">
+<a href="#section-5.2.1" class="section-number selfRef">5.2.1. </a><a href="#name-change-types" class="section-name selfRef">Change Types</a>
           </h4>
-<p id="section-6.2.1-1">If the number or resources that were modified (Created, Updated, or Deleted) after the issuance of the delta token used in a delta Scan is large, a service provider supporting cursor-based-pagination <span class="bcp14">MAY</span> paginate the response and return a value for the nextCursor attribute. When the client is ready to retrieve the next page of results it <span class="bcp14">SHOULD</span> query the same service provider endpoint with all query parameters and values remaining identical to the initial query with the exception of the cursor parameter and its value.<a href="#section-6.2.1-1" class="pilcrow">¶</a></p>
-<p id="section-6.2.1-2">The below example request and response shows the first request to redeem a delta token as part of a delta Scan.<a href="#section-6.2.1-2" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-6.2.1-3">
-<pre>
-GET Users?deltaQuery&amp;deltaToken=VTHKLOUTREO
-Host: example.com
-Accept: application/scim+json
-Authorization: Bearer U8YJcYYRMjbGeepD
-
-HTTP/1.1 200 OK
-Content-Type: application/scim+json
-{
-  "totalResults":8649,
-  "itemsPerPage":100,
-  "nextCursor": "CVHNJKUYFRT",
-  "schemas": ["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
-  "Resources": [{
-    ...
-  }]
-}
-</pre><a href="#section-6.2.1-3" class="pilcrow">¶</a>
-</div>
-<p id="section-6.2.1-4">In the response portion of the above example, the response is limited in size by the service provider even though the client did not request a paginated response.<a href="#section-6.2.1-4" class="pilcrow">¶</a></p>
-<p id="section-6.2.1-5">In the below example, the client uses the cursor value obtained in the previous example to retrieve the next page of results.<a href="#section-6.2.1-5" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-6.2.1-6">
-<pre>
-GET Users?deltaQuery&amp;deltaToken=VTHKLOUTREO&amp;cursor=CVHNJKUYFRT
-Host: example.com
-Accept: application/scim+json
-Authorization: Bearer U8YJcYYRMjbGeepD
-
-HTTP/1.1 200 OK
-Content-Type: application/scim+json
-{
-  "totalResults":8649,
-  "itemsPerPage":63,
-  "prevCursor": "CVHNJKUYFRT",
-  "nextDeltaToken": ALEMQPXNAZX",
-  "schemas": ["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
-  "Resources": [{
-    ...
-  }]
-}
-</pre><a href="#section-6.2.1-6" class="pilcrow">¶</a>
-</div>
-<p id="section-6.2.1-7">The results of the query can be progressed through by repeating the original query while continuously updating the cursor value. When returning the last page of results, the service provider will omit the nextCursor value and will include the nextDeltaToken value.<a href="#section-6.2.1-7" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="consistency-consideration-while-paginating-through-delta-query-responses">
-<section id="section-6.2.2">
-          <h4 id="name-consistency-consideration-w">
-<a href="#section-6.2.2" class="section-number selfRef">6.2.2. </a><a href="#name-consistency-consideration-w" class="section-name selfRef">Consistency Consideration while Paginating through Delta Query Responses</a>
-          </h4>
-<p id="section-6.2.2-1">Service providers <span class="bcp14">MUST NOT</span> prevent resources from being updated (locking resources) while implementing delta query. New items can be added or existing items can be removed or updated while paginating through the response of the delta queries. The result set will contain eventually consistent data, however some implementations may choose to enforce strongly consistent data. The delta query <span class="bcp14">MUST</span> guarantee that the records modified (created, updated, or deleted) after any query that generates a delta token are returned when that same delta token is provided back by the client.<a href="#section-6.2.2-1" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="resource-representation-in-the-delta-query-response">
-<section id="section-6.2.3">
-          <h4 id="name-resource-representation-in-">
-<a href="#section-6.2.3" class="section-number selfRef">6.2.3. </a><a href="#name-resource-representation-in-" class="section-name selfRef">Resource Representation in the Delta Query Response</a>
-          </h4>
-<p id="section-6.2.3-1">Newly created resources are represented in the delta query response using their standard representation. Updated resources are represented using their standard representation, and their current state is returned.
-Deleted instances <span class="bcp14">MUST</span> return common attribute id and complex attribute meta with sub attributes resourceType and meta.isDeleted attribute value with value True.<a href="#section-6.2.3-1" class="pilcrow">¶</a></p>
-<div id="minimal-representation-for-a-deleted-resource">
-<section id="section-6.2.3.1">
-            <h5 id="name-minimal-representation-for-">
-<a href="#section-6.2.3.1" class="section-number selfRef">6.2.3.1. </a><a href="#name-minimal-representation-for-" class="section-name selfRef">Minimal Representation for a Deleted Resource</a>
+<p id="section-5.2.1-1">Delta query responses are categorized into one of three change types.<a href="#section-5.2.1-1" class="pilcrow">¶</a></p>
+<div id="create">
+<section id="section-5.2.1.1">
+            <h5 id="name-create">
+<a href="#section-5.2.1.1" class="section-number selfRef">5.2.1.1. </a><a href="#name-create" class="section-name selfRef">Create</a>
             </h5>
-<p id="section-6.2.3.1-1">Following is a non-normative example of the minimal required SCIM representation in JSON format for a deleted resource.<a href="#section-6.2.3.1-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-6.2.3.1-2">
-<pre>
-{
-  "schemas": ["urn:ietf:params:scim:schemas:core:2.0:User"],
-  "id": "2819c223-7f76-453a-919d-413861904646",
-  "meta": {
-    "resourceType": "User",
-    "isDeleted": true
-  }
-}
-</pre><a href="#section-6.2.3.1-2" class="pilcrow">¶</a>
+<p id="section-5.2.1.1-1">Newly created resources <span class="bcp14">MUST</span> be represented by a delta query response with a "changeType" of "Create". Delta query responses of type "Create" <span class="bcp14">MUST</span> return either the the full current state of the resource or the state of the resource at the time of creation in the "data" attribute.<a href="#section-5.2.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.2.1.1-2">Newly created resources that were created with or updated after creation to have a large amount of data <span class="bcp14">MAY</span> return a "Create" operation followed by one or more "Update" operations to provide an accurate representation of the current state of the resource split across multiple delta query response messages.<a href="#section-5.2.1.1-2" class="pilcrow">¶</a></p>
+</section>
 </div>
-<p id="section-6.2.3.1-3">#### Full Representation for a Deleted Resource<a href="#section-6.2.3.1-3" class="pilcrow">¶</a></p>
-<p id="section-6.2.3.1-4">Following is a non-normative example of the fully populated SCIM representation in JSON format for a deleted resource.<a href="#section-6.2.3.1-4" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-6.2.3.1-5">
-<pre>
-{
-  "schemas": ["urn:ietf:params:scim:schemas:core:2.0:User"],
-  "id": "2819c223-7f76-453a-919d-413861904646",
-  "meta": {
-    "resourceType": "User",
-    "isDeleted": true,
-    "created":"2011-08-01T10:29:49.793Z",
-    "lastModified":"2011-08-01T18:29:49.793Z",
-    "location": "https://example.com/v2/Users/2819c223-7f76-453a-919d-413861904646",
-    "version":"W\/\"f250dd84f0671c3\""
-  }
-}
-</pre><a href="#section-6.2.3.1-5" class="pilcrow">¶</a>
+<div id="update">
+<section id="section-5.2.1.2">
+            <h5 id="name-update">
+<a href="#section-5.2.1.2" class="section-number selfRef">5.2.1.2. </a><a href="#name-update" class="section-name selfRef">Update</a>
+            </h5>
+<p id="section-5.2.1.2-1">Updated resources <span class="bcp14">MUST</span> be represented by a delta query response with a "changeType" of "Update". Service providers <span class="bcp14">MAY</span> return either the full current state of the updated resource via the "data" attribute, or only the changed attributes via the "operations" attribute. Service providers <span class="bcp14">SHOULD</span> return only changed attributes when possible.<a href="#section-5.2.1.2-1" class="pilcrow">¶</a></p>
+</section>
 </div>
-<p id="section-6.2.3.1-6">#### Example Delta Query Response
-Below example depicts a response with newly created, updated and deleted resources returned by the SCIM server in response to the Delta Query request for User resource.<a href="#section-6.2.3.1-6" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-6.2.3.1-7">
+<div id="delete">
+<section id="section-5.2.1.3">
+            <h5 id="name-delete">
+<a href="#section-5.2.1.3" class="section-number selfRef">5.2.1.3. </a><a href="#name-delete" class="section-name selfRef">Delete</a>
+            </h5>
+<p id="section-5.2.1.3-1">Deleted resources <span class="bcp14">MUST</span> be represented by a delta query response with a "changeType" of "Delete". Deleted resources <span class="bcp14">SHALL NOT</span> have a value in either "data" or "operations".<a href="#section-5.2.1.3-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="operations">
+<section id="section-5.2.2">
+          <h4 id="name-operations">
+<a href="#section-5.2.2" class="section-number selfRef">5.2.2. </a><a href="#name-operations" class="section-name selfRef">Operations</a>
+          </h4>
+<p id="section-5.2.2-1">The structure of the "operations" attribute in the delta query response message is based on the SCIM PATCH semantics defined in <span><a href="https://rfc-editor.org/rfc/rfc7644#section-3.5.2" class="relref">Section 3.5.2</a> of [<a href="#RFC7644" class="cite xref">RFC7644</a>]</span>. The rules defined in this section and its subsections apply to the "operations" attribute's "op", "path", and "value" sub-attributes.<a href="#section-5.2.2-1" class="pilcrow">¶</a></p>
+<div id="add">
+<section id="section-5.2.2.1">
+            <h5 id="name-add">
+<a href="#section-5.2.2.1" class="section-number selfRef">5.2.2.1. </a><a href="#name-add" class="section-name selfRef">Add</a>
+            </h5>
+<p id="section-5.2.2.1-1">Using the "add" op can represent new values being added to any attribute, and values being either added or replaced on single-valued attributes. Examples include:<a href="#section-5.2.2.1-1" class="pilcrow">¶</a></p>
+<div id="adding-or-replacing-a-value-to-a-single-valued-attribute">
+<section id="section-5.2.2.1.1">
+              <h6 id="name-adding-or-replacing-a-value">
+<a href="#section-5.2.2.1.1" class="section-number selfRef">5.2.2.1.1. </a><a href="#name-adding-or-replacing-a-value" class="section-name selfRef">Adding or replacing a value to a single-valued attribute</a>
+              </h6>
+<div class="alignLeft art-text artwork" id="section-5.2.2.1.1-1">
 <pre>
-GET Users?deltaQuery&amp;count=50&amp;deltaToken=VTHKLOUTREO
-Host: example.com
-Accept: application/scim+json
-Authorization: Bearer U8YJcYYRMjbGeepD
-
-
-HTTP/1.1 200 OK
-Content-Type: application/scim+json
 {
-    "schemas":["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
-    "totalResults":3,
-    "Resources":[
-    {
-        "id":"2819c223-7f76-453a-919d-413861904646",
-        "externalId":"bjensen",
-        "meta":{
-        "resourceType":"User",
-        "created":"2011-08-01T18:29:49.793Z",
-        "lastModified":"2011-08-01T18:29:49.793Z",
-        "location":
-        "https://example.com/v2/Users/2819c223-7f76-453a-919d-413861904646",
-        "version":"W\/\"f250dd84f0671c3\""
-        },
-        "name":{
-        "formatted":"Ms. Barbara J Jensen III",
-        "familyName":"Jensen",
-        "givenName":"Barbara"
-        },
-        "userName":"bjensen",
-        "phoneNumbers":[
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:delta:response"],
+    "changedResourceId":"U49z",
+    "resourceType":"User",
+    "changeType":"Update",
+    "operations":[
         {
-        "value":"555-555-8377",
-        "type":"work"
+            "op":"add",
+            "path":"urn:ietf:params:scim:schemas:extension:enterprise\
+:2.0:User:employeeNumber",
+            "value": "123456"
         }
-        ],
-        "emails":[
-        {
-        "value":"bjensen@example.com",
-        "type":"work"
-        }
-        ]
-    },
-    {
-       "id":"c75ad752-64ae-4823-840d-ffa80929976c",
-       "externalId":"jsmith",
-       "meta":{
-       "isDeleted":"true",
-        "resourceType":"User",
-        "created":"2011-08-01T10:29:49.793Z",
-        "lastModified":"2011-08-01T18:29:49.793Z",
-        "location":
-        "https://example.com/v2/Users/2819c223-7f76-453a-919d-413861904646",
-        "version":"W\/\"f250dd84f0671c3\""
-        }
-    },
-    {
-       "id":"c75ad752-64ae-4823-840d-ffa80929976c",
-        "externalId":"xxxxxx",
-       "meta":{
-        "isDeleted":"true",
-        "resourceType":"User",
-        "created":"2011-08-01T10:29:49.793Z",
-        "lastModified":"2011-08-01T18:29:49.793Z",
-        "location":
-        "https://example.com/v2/Users/2819c223-7f76-453a-919d-413861904646",
-        "version":"W\/\"f250dd84f0671c3\""
-        }
-    }
     ]
 }
-</pre><a href="#section-6.2.3.1-7" class="pilcrow">¶</a>
+</pre><a href="#section-5.2.2.1.1-1" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
-</section>
-</div>
-</section>
-</div>
-<div id="delta-query-errors">
-<section id="section-6.3">
-        <h3 id="name-delta-query-errors">
-<a href="#section-6.3" class="section-number selfRef">6.3. </a><a href="#name-delta-query-errors" class="section-name selfRef">Delta Query Errors</a>
-        </h3>
-<p id="section-6.3-1">If a Service Provider encounters an invalid delta query parameters (invalid delta token value, deltaQuery value, etc), or other error condition, the Service Provider <span class="bcp14">SHOULD</span> return the appropriate HTTP response status code and detailed JSON error response as defined in Section 3.12 of <span>[<a href="#RFC7644" class="cite xref">RFC7644</a>]</span>.  Most deltaQuery error conditions would generate HTTP response with status code 400.  Since many deltaQuery error conditions are not user recoverable, error messages <span class="bcp14">SHOULD</span> focus on communicating error details to the SCIM client developer.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
-<p id="section-6.3-2">For HTTP status code 400 (Bad Request) responses, the following detail error types are defined. These error types extend the list of error types defined in RFC 7644 Section 3.12, Table 9: SCIM Detail Error Keyword Values.<a href="#section-6.3-2" class="pilcrow">¶</a></p>
-<span id="name-delta-query-errors-2"></span><table class="center" id="table-2">
-          <caption>
-<a href="#table-2" class="selfRef">Table 2</a>:
-<a href="#name-delta-query-errors-2" class="selfRef">Delta Query Errors</a>
-          </caption>
-<thead>
-            <tr>
-              <th class="text-left" rowspan="1" colspan="1">scimType</th>
-              <th class="text-left" rowspan="1" colspan="1">Description</th>
-              <th class="text-left" rowspan="1" colspan="1">Applicability</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">invalidValue</td>
-              <td class="text-left" rowspan="1" colspan="1">The parameter deltaToken was provided without the deltaQuery parameter. Parameter "deltaToken" must be accompanied with deltaQuery parameter. OR Invalid value for "deltaToken" parameter. Value for "deltaToken" parameter must be the same as provided by the SCIM service provider in nextDeltaToken OR Invalid value for deltaQuery parameter. Value of "deltaQuery" parameter must be either true or false</td>
-              <td class="text-left" rowspan="1" colspan="1">GET (Section Delta Query Parameters of ([Delta Query Draft])), POST (Section Delta Query Using HTTP POST of ([Delta Query Draft]))</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">expiredDeltaToken</td>
-              <td class="text-left" rowspan="1" colspan="1">Delta Token has expired. Do not wait longer than deltaTokenExpiry (40 minutes) to request subsequent delta query requests.</td>
-              <td class="text-left" rowspan="1" colspan="1">GET (Section 3.4.2 of <span>[<a href="#RFC7644" class="cite xref">RFC7644</a>]</span>), POST (Section Delta Query Using HTTP POST of ([Delta Query]))</td>
-            </tr>
-          </tbody>
-        </table>
-</section>
-</div>
-<div id="filtering">
-<section id="section-6.4">
-        <h3 id="name-filtering">
-<a href="#section-6.4" class="section-number selfRef">6.4. </a><a href="#name-filtering" class="section-name selfRef">Filtering</a>
-        </h3>
-<p id="section-6.4-1">If filtering is implemented as described in Section 3.4.2.2 of <span>[<a href="#RFC7644" class="cite xref">RFC7644</a>]</span>, then delta query results should be filtered.<a href="#section-6.4-1" class="pilcrow">¶</a></p>
-<p id="section-6.4-2">When the client makes a subsequent deltaQuery request, it should query the same Service Provider endpoint with all query parameters and values being identical to the initial query issued in the previous delta scan or full scan with the exception of the deltatoken value which should be set to a nextDeltaToken value that was returned by Service Provider in a previous delta query response.<a href="#section-6.4-2" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="sorting">
-<section id="section-6.5">
-        <h3 id="name-sorting">
-<a href="#section-6.5" class="section-number selfRef">6.5. </a><a href="#name-sorting" class="section-name selfRef">Sorting</a>
-        </h3>
-<p id="section-6.5-1">If sorting is implemented as described Section 3.4.2.3 of <span>[<a href="#RFC7644" class="cite xref">RFC7644</a>]</span>, then deltaQuery results <span class="bcp14">SHOULD</span> be sorted.<a href="#section-6.5-1" class="pilcrow">¶</a></p>
-</section>
-</div>
-</section>
-</div>
-<div id="delta-query-using-http-post">
-<section id="section-7">
-      <h2 id="name-delta-query-using-http-post">
-<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-delta-query-using-http-post" class="section-name selfRef">Delta Query using HTTP POST</a>
-      </h2>
-<p id="section-7-1">Section 3.4.2.4 of <span>[<a href="#RFC7644" class="cite xref">RFC7644</a>]</span> defines how clients <span class="bcp14">MAY</span> execute the HTTP POST method combined with the "/.search" path extension to issue execute queries without passing parameters on the URL. When using "/.search", the client would pass the parameters defined in Section 2<a href="#section-7-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-7-2">
+<div id="adding-or-replacing-multiple-attribute-values">
+<section id="section-5.2.2.1.2">
+              <h6 id="name-adding-or-replacing-multipl">
+<a href="#section-5.2.2.1.2" class="section-number selfRef">5.2.2.1.2. </a><a href="#name-adding-or-replacing-multipl" class="section-name selfRef">Adding or replacing multiple attribute values</a>
+              </h6>
+<div class="alignLeft art-text artwork" id="section-5.2.2.1.2-1">
 <pre>
-POST /User/.search
+{
+    "op":"add",
+    "value": {
+        "displayName": "John Doe",
+        "active": true,
+        "urn:ietf:params:scim:schemas:extension:enterprise\
+:2.0:User:employeeNumber": "12345"
+    }
+}
+</pre><a href="#section-5.2.2.1.2-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="adding-a-value-to-a-multi-valued-attribute">
+<section id="section-5.2.2.1.3">
+              <h6 id="name-adding-a-value-to-a-multi-v">
+<a href="#section-5.2.2.1.3" class="section-number selfRef">5.2.2.1.3. </a><a href="#name-adding-a-value-to-a-multi-v" class="section-name selfRef">Adding a value to a multi-valued attribute</a>
+              </h6>
+<div class="alignLeft art-text artwork" id="section-5.2.2.1.3-1">
+<pre>
+{
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:delta:response"],
+    "changedResourceId":"U49z",
+    "resourceType":"User",
+    "changeType":"Update",
+    "operations":[
+        {
+            "op":"add",
+            "path":"phoneNumbers",
+            "value":[
+                {
+                    "value":"555-555-5555",
+                    "type":"work"
+                }
+            ]
+
+        }
+    ]
+}
+</pre><a href="#section-5.2.2.1.3-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="adding-members-being-added-to-a-group">
+<section id="section-5.2.2.1.4">
+              <h6 id="name-adding-members-being-added-">
+<a href="#section-5.2.2.1.4" class="section-number selfRef">5.2.2.1.4. </a><a href="#name-adding-members-being-added-" class="section-name selfRef">Adding members being added to a group</a>
+              </h6>
+<div class="alignLeft art-text artwork" id="section-5.2.2.1.4-1">
+<pre>
+{
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:delta:response"],
+    "changedResourceId":"G88",
+    "resourceType":"Group",
+    "changeType":"Update",
+    "operations":[
+        {
+            "op":"add",
+            "path":"members",
+            "value":[
+                {
+                    "value":"memberId7"
+                },
+                {
+                    "value":"memberId8"
+                },
+                {
+                    "value":"memberId9"
+                }
+            ]
+        }
+    ]
+}
+</pre><a href="#section-5.2.2.1.4-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="remove">
+<section id="section-5.2.2.2">
+            <h5 id="name-remove">
+<a href="#section-5.2.2.2" class="section-number selfRef">5.2.2.2. </a><a href="#name-remove" class="section-name selfRef">Remove</a>
+            </h5>
+<p id="section-5.2.2.2-1">The "remove" op is used when one or more values of an attribute have been removed. Examples include:<a href="#section-5.2.2.2-1" class="pilcrow">¶</a></p>
+<div id="removing-a-single-valued-attribute">
+<section id="section-5.2.2.2.1">
+              <h6 id="name-removing-a-single-valued-at">
+<a href="#section-5.2.2.2.1" class="section-number selfRef">5.2.2.2.1. </a><a href="#name-removing-a-single-valued-at" class="section-name selfRef">Removing a single-valued attribute</a>
+              </h6>
+<div class="alignLeft art-text artwork" id="section-5.2.2.2.1-1">
+<pre>
+{
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:delta:response"],
+    "changedResourceId":"U40iA1Q9",
+    "resourceType":"User",
+    "changeType":"Update",
+    "operations":[
+        {
+            "op":"remove",
+            "path":"manager"
+        }
+    ]
+}
+</pre><a href="#section-5.2.2.2.1-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="removing-a-value-from-a-typed-multi-valued-attribute">
+<section id="section-5.2.2.2.2">
+              <h6 id="name-removing-a-value-from-a-typ">
+<a href="#section-5.2.2.2.2" class="section-number selfRef">5.2.2.2.2. </a><a href="#name-removing-a-value-from-a-typ" class="section-name selfRef">Removing a value from a typed multi-valued attribute</a>
+              </h6>
+<div class="alignLeft art-text artwork" id="section-5.2.2.2.2-1">
+<pre>
+{
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:delta:response"],
+    "changedResourceId":"U40iA1Q9",
+    "resourceType":"User",
+    "changeType":"Update",
+    "operations":[
+        {
+            "op":"remove",
+            "path":"emails[type eq \"work\" and \
+value eq \"user5@example.com\"]"
+        }
+    ]
+}
+</pre><a href="#section-5.2.2.2.2-1" class="pilcrow">¶</a>
+</div>
+<p id="section-5.2.2.2.2-2">##### Removing members from a group<a href="#section-5.2.2.2.2-2" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.2.2.2.2-3">
+<pre>
+{
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:delta:response"],
+    "changedResourceId":"G88",
+    "resourceType":"Group",
+    "changeType":"Update",
+    "operations":[
+        {
+            "op":"remove",
+            "path":"members[value eq \"member1\"]",
+        },
+        {
+            "op":"remove",
+            "path":"members[value eq \"member2\"]",
+        }
+    ]
+}
+</pre><a href="#section-5.2.2.2.2-3" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="replace">
+<section id="section-5.2.2.3">
+            <h5 id="name-replace">
+<a href="#section-5.2.2.3" class="section-number selfRef">5.2.2.3. </a><a href="#name-replace" class="section-name selfRef">Replace</a>
+            </h5>
+<p id="section-5.2.2.3-1">The "replace" op can be used when some or all of the values of an attribute have been replaced. When responding with operations about multi-valued attributes, service providers <span class="bcp14">SHOULD</span> provide unambiguous valuePath filters when possible, and <span class="bcp14">SHALL</span> provide all current values of the attribute when constructing an unambiguous valuePath filter is not possible. Examples include:<a href="#section-5.2.2.3-1" class="pilcrow">¶</a></p>
+<div id="replacing-a-single-valued-attribute">
+<section id="section-5.2.2.3.1">
+              <h6 id="name-replacing-a-single-valued-a">
+<a href="#section-5.2.2.3.1" class="section-number selfRef">5.2.2.3.1. </a><a href="#name-replacing-a-single-valued-a" class="section-name selfRef">Replacing a single-valued attribute</a>
+              </h6>
+<div class="alignLeft art-text artwork" id="section-5.2.2.3.1-1">
+<pre>
+{
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:delta:response"],
+    "changedResourceId":"U40iA1Q9",
+    "resourceType":"User",
+    "changeType":"Update",
+    "operations":[
+        {
+            "op":"replace",
+            "path":"userName",
+            "value":"jensenb@example.com"
+        }
+    ]
+}
+</pre><a href="#section-5.2.2.3.1-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="replacing-values-in-a-typed-multi-valued-attribute">
+<section id="section-5.2.2.3.2">
+              <h6 id="name-replacing-values-in-a-typed">
+<a href="#section-5.2.2.3.2" class="section-number selfRef">5.2.2.3.2. </a><a href="#name-replacing-values-in-a-typed" class="section-name selfRef">Replacing values in a typed multi-valued attribute</a>
+              </h6>
+<div class="alignLeft art-text artwork" id="section-5.2.2.3.2-1">
+<pre>
+{
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:delta:response"],
+    "changedResourceId":"U40iA1Q9",
+    "resourceType":"User",
+    "changeType":"Update",
+    "operations":[
+        {
+            "op":"replace",
+            "path":"phoneNumbers[type eq \"work\" \
+and primary eq true].value",
+            "value":"555-555-5556"
+        }
+    ]
+}
+</pre><a href="#section-5.2.2.3.2-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+</section>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="request-and-response-examples">
+<section id="section-5.3">
+        <h3 id="name-request-and-response-exampl">
+<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-request-and-response-exampl" class="section-name selfRef">Request and Response Examples</a>
+        </h3>
+<div id="requesting-changed-resources">
+<section id="section-5.3.1">
+          <h4 id="name-requesting-changed-resource">
+<a href="#section-5.3.1" class="section-number selfRef">5.3.1. </a><a href="#name-requesting-changed-resource" class="section-name selfRef">Requesting changed resources</a>
+          </h4>
+<p id="section-5.3.1-1">The following example shows a client using a previously obtained delta token to make a delta query request for all changes for the User resource type.<a href="#section-5.3.1-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.3.1-2">
+<pre>
+POST /Users/.delta
 Host: example.com
 Accept: application/scim+json
-Authorization: Bearer U8YJcYYRMjbGeepD
+Authorization: Bearer foo
 
 {
- "schemas": [
- "urn:ietf:params:scim:api:messages:2.0:SearchRequest"],
- "attributes": ["displayName", "userName"],
- "filter":
- "displayName sw \"smith\"",
- "deltaQuery": "true",
- "deltaToken": "VTHKLOUTREO"
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:delta:request"],
+    "deltaToken":"dGVzdC1kZWx0YVRva2Vu"
 }
-</pre><a href="#section-7-2" class="pilcrow">¶</a>
+</pre><a href="#section-5.3.1-2" class="pilcrow">¶</a>
 </div>
-<p id="section-7-3">Which would return a result containing a "nextDeltaToken" value which may
-be used by the client in a subsequent delta scan call to return the next set of modified resources.
-~~~
-HTTP/1.1 200 OK
-Content-Type: application/scim+json<a href="#section-7-3" class="pilcrow">¶</a></p>
-<p id="section-7-4">{
- "totalResults":10,
- "itemsPerPage":10,
- "nextdeltatoken":"OPUTREWSFDE",
- "schemas":["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
- "Resources":[{
-  ...
-}]
+<p id="section-5.3.1-3">The service provider response would then contain any User resources that had changed since the delta token "dGVzdC1kZWx0YVRva2Vu" was issued. The following example shows a response with a newly created user, a user with attribute updates, and a deleted user.<a href="#section-5.3.1-3" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.3.1-4">
+<pre>
+HTTP/1.1 200/OK
+Content-Type: application/scim+json
+
+{
+    "totalResults": 3,
+    "itemsPerPage": 3,
+    "schemas": ["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
+    "Resources": [
+        {
+            "schemas":"urn:ietf:scim:api:messages:2.0:delta:response",
+            "changedResourceId": "123",
+            "resourceType": "User",
+            "changeType": "Create",
+            "data": {
+                "userName": "bjensen",
+                "name": {
+                    "formatted": "Ms. Barbara J Jensen III",
+                    "familyName": "Jensen",
+                    "givenName": "Barbara"
+                },
+                "id": "123",
+                "active": true,
+                "phoneNumbers": [
+                    {
+                        "value": "555-555-5555",
+                        "type": "work"
+                    }
+                ]
+            }
+        },
+        {
+            "schemas":"urn:ietf:scim:api:messages:2.0:delta:response",
+            "changedResourceId": "456",
+            "resourceType": "User",
+            "changeType": "Update",
+            "operations": [
+                {
+                    "op": "replace",
+                    "path": "name.givenName",
+                    "value": "Jim"
+                },
+                {
+                    "op": "add",
+                    "path": "phoneNumbers",
+                    "value": [
+                        {
+                            "value": "555-555-4567",
+                            "type": "mobile"
+                        }
+                    ]
+                }
+            ]
+
+        },
+        {
+            "schemas":"urn:ietf:scim:api:messages:2.0:delta:response",
+            "changedResourceId": "789",
+            "resourceType": "User",
+            "changeType": "Delete"
+        }
+    ]
 }
-~~~<a href="#section-7-4" class="pilcrow">¶</a></p>
+</pre><a href="#section-5.3.1-4" class="pilcrow">¶</a>
+</div>
 </section>
 </div>
-<div id="service-provider-configuration">
-<section id="section-8">
-      <h2 id="name-service-provider-configurat">
-<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-service-provider-configurat" class="section-name selfRef">Service Provider Configuration</a>
-      </h2>
-<p id="section-8-1">The /ServiceProviderConfig resource defined in Section 4 of <span>[<a href="#RFC7644" class="cite xref">RFC7644</a>]</span> facilitates discovery of SCIM service provider features. A SCIM Service provider implementing delta query <span class="bcp14">SHOULD</span> include the following additional attribute in JSON document returned by the /ServiceProviderConfig endpoint:<a href="#section-8-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-8-2">
+<div id="updates-from-service-providers-that-do-not-support-attribute-level-change-tracking">
+<section id="section-5.3.2">
+          <h4 id="name-updates-from-service-provid">
+<a href="#section-5.3.2" class="section-number selfRef">5.3.2. </a><a href="#name-updates-from-service-provid" class="section-name selfRef">Updates from service providers that do not support attribute-level change tracking</a>
+          </h4>
+<p id="section-5.3.2-1">Service providers that do not support attribute-level change tracking <span class="bcp14">MAY</span> return the full current state of changed resources in the "data" attribute. The following example shows a delta query response by a service provider that only returns the full current state of changed resources. Clients <span class="bcp14">SHALL</span> be responsible for determining what attribute values have changed when the service provider has returned updated resource information using the "data" attribute.<a href="#section-5.3.2-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.3.2-2">
 <pre>
-  deltaQuery
-      : A complex attribute that indicates delta query configuration options.  OPTIONAL.
-  supported
-  : A Boolean value specifying support of delta query.  REQUIRED.
-  deltaTokenExpiry
-  : Non-negative integer specifying the maximum number minutes that a deltaToken is valid between delta Scan requests.  Clients waiting too long between subsequent delta scan requests may receive an invalid delta token error response. OPTIONAL.
-</pre><a href="#section-8-2" class="pilcrow">¶</a>
-</div>
-<p id="section-8-3">If the SCIM client issues a delta query to a SCIM service provider that does not support or implement delta query feature then SCIM service provider will respond with HTTP Status Code 501, Unsupported Feature - Delta Query. Server does not support delta query feature.<a href="#section-8-3" class="pilcrow">¶</a></p>
-<p id="section-8-4">Before using delta query, a SCIM client <span class="bcp14">MAY</span> fetch the Service Provider Configuration document from the SCIM service provider and verify that delta query is supported.<a href="#section-8-4" class="pilcrow">¶</a></p>
-<p id="section-8-5">For example:<a href="#section-8-5" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-8-6">
-<pre>
-GET /ServiceProviderConfig
+POST /Users/.delta
 Host: example.com
 Accept: application/scim+json
+Authorization: Bearer foo
 
-</pre><a href="#section-8-6" class="pilcrow">¶</a>
+{
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:delta:request"],
+    "deltaToken":"3894e6d5-8e9e-4b5c-9b3b-6e8e7d4a4e9d",
+    "filter":"title eq \"Tour Guide\" and \
+addresses.country eq \"France\""
+}
+</pre><a href="#section-5.3.2-2" class="pilcrow">¶</a>
 </div>
-<p id="section-8-7">A service provider supporting both delta query token would return a document similar to the following (full ServiceProviderConfig schema defined in Section 5 of <span>[<a href="#RFC7643" class="cite xref">RFC7643</a>]</span> has been omitted for brevity):<a href="#section-8-7" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-8-8">
+<p id="section-5.3.2-3">The service provider's response (some results omitted for brevity) is:<a href="#section-5.3.2-3" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.3.2-4">
 <pre>
 HTTP/1.1 200 OK
 Content-Type: application/scim+json
 
 {
- "schemas": [
- "urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig"],
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
+    "totalResults":30,
+    "itemsPerPage":10,
+    "Resources":[
+        {
+            "schemas":["urn:ietf:params:scim:api:messages:\
+2.0:delta:response"],
+            "changedResourceId":"qwerty",
+            "resourceType":"User",
+            "changeType":"Update",
+            "data":{
+                "userName":"bjensen",
+                "name":{
+                    "formatted":"Ms. Barbara J Jensen III",
+                    "familyName":"Jensen",
+                    "givenName":"Barbara"
+                },
+                "title":"Tour Guide",
+                "id":"qwerty",
+                "active":true,
+                "emails":[
+                    {
+                        "value":"bjensen@example.com",
+                        "type":"work",
+                        "primary":true
+                    }
+                ],
+                "addresses":[
+                    {
+                        "type":"work",
+                        "country":"France",
+                        "locality":"Paris",
+                        "primary":true
+                    }
+                ]
 
-        ...
-
- "deltaQuery": {
-        "supported": true
+            }
         },
-
-   ...
-
+        {...},
+        {...}
+    ]
 }
-</pre><a href="#section-8-8" class="pilcrow">¶</a>
+
+</pre><a href="#section-5.3.2-4" class="pilcrow">¶</a>
 </div>
-<p id="section-8-9">Service Provider implementors <span class="bcp14">SHOULD</span> ensure that misuse of delta query by a SCIM client does not deplete Service Provider resources or prevent valid requests from other clients being handled. Defenses for a SCIM Service Provider are similar those used to protect other Web API services -- including the use of a "Web API gateway" layer, to provide authentication, rate limiting, IP allow/block lists, logging and monitoring, response caching, etc.<a href="#section-8-9" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="add-normative-references">
-<section id="section-9">
-      <h2 id="name-add-normative-references">
-<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-add-normative-references" class="section-name selfRef">ADD NORMATIVE REFERENCES</a>
-    </h2>
+<div id="creation-of-a-large-resource-across-multiple-pages">
+<section id="section-5.3.3">
+          <h4 id="name-creation-of-a-large-resourc">
+<a href="#section-5.3.3" class="section-number selfRef">5.3.3. </a><a href="#name-creation-of-a-large-resourc" class="section-name selfRef">Creation of a large resource across multiple pages</a>
+          </h4>
+<p id="section-5.3.3-1">As described in (Ref to DQ Response - Create), large resources such as groups with many members may be returned across multiple pages. The following example shows a service provider's delta query responses for a group broken into multiple delta query response messages.<a href="#section-5.3.3-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.3.3-2">
+<pre>
+POST /Groups/.delta
+Host: example.com
+Accept: application/scim+json
+Authorization: Bearer foo
+
+{
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:delta:request"],
+    "deltaToken":"3894e6d5-8e9e-4b5c-9b3b-6e8e7d4a4e9d",
+}
+</pre><a href="#section-5.3.3-2" class="pilcrow">¶</a>
+</div>
+<p id="section-5.3.3-3">The service provider's response may contain delta query responses pertaining to other resources. For the newly created example group with an "id" value of "G123", the following delta query responses are returned:<a href="#section-5.3.3-3" class="pilcrow">¶</a></p>
+<p id="section-5.3.3-4">Some "members" values are omitted in the below examples for brevity.<a href="#section-5.3.3-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.3.3-5">
+<pre>
+{
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
+    "totalResults":405,
+    "itemsPerPage":1,
+    "nextCursor":"foo",
+    "Resources":[
+        {
+            "schemas":["urn:ietf:params:scim:api:messages:\
+    2.0:delta:response"],
+            "changedResourceId":"G123",
+            "resourceType":"Group",
+            "changeType":"Create",
+            "data":{
+                "id":"G1",
+                "displayName":"All Users",
+                "members":[
+                    {
+                        "value":"member1"
+                    },
+                        ...
+                    {
+                        "value":"member99"
+                    }
+                ]
+
+            }
+        }
+    ]
+}
+</pre><a href="#section-5.3.3-5" class="pilcrow">¶</a>
+</div>
+<p id="section-5.3.3-6">Following the "Create" delta query response, the service provider on a later page of results returns:<a href="#section-5.3.3-6" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.3.3-7">
+<pre>
+{
+    "schemas":["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
+    "totalResults":456,
+    "itemsPerPage":1,
+    "nextCursor":"bar",
+    "Resources":[
+        {
+            "schemas":["urn:ietf:params:scim:api:messages:\
+    2.0:delta:response"],
+            "changedResourceId":"G123",
+            "resourceType":"Group",
+            "changeType":"Update",
+            "operations":[
+                {
+                    "op":"add",
+                    "path":"members",
+                    "value":[
+                        {
+                            "value":"member100"
+                        },
+                        {
+                            "value":"..."
+                        },
+                        {
+                            "value":"member199"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+},
+</pre><a href="#section-5.3.3-7" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="security-considerations">
+<section id="section-6">
+      <h2 id="name-security-considerations">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-6-1">To-do<a href="#section-6-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="iana-considerations">
+<section id="section-7">
+      <h2 id="name-iana-considerations">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<p id="section-7-1">To-do<a href="#section-7-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="acknowledgements">
-<section id="section-10">
+<section id="section-8">
       <h2 id="name-acknowledgements">
-<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-acknowledgements" class="section-name selfRef">Acknowledgements</a>
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-acknowledgements" class="section-name selfRef">Acknowledgements</a>
       </h2>
-<p id="section-10-1">The authors would like to thank Mike Kiser (Sailpoint) for his contributions to early design discussions for this draft.<a href="#section-10-1" class="pilcrow">¶</a></p>
+<p id="section-8-1">To-do<a href="#section-8-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="other">
+<section id="section-9">
+      <h2 id="name-other">
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-other" class="section-name selfRef">Other</a>
+      </h2>
+<p id="section-9-1">To-do<a href="#section-9-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="sec-normative-references">
-<section id="section-11">
+<section id="section-10">
       <h2 id="name-normative-references">
-<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
       </h2>
 <dl class="references">
 <dt id="RFC2119">[RFC2119]</dt>
       <dd>
 <span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="RFC3986">[RFC3986]</dt>
-      <dd>
-<span class="refAuthor">Berners-Lee, T.</span>, <span class="refAuthor">Fielding, R.</span>, and <span class="refAuthor">L. Masinter</span>, <span class="refTitle">"Uniform Resource Identifier (URI): Generic Syntax"</span>, <span class="seriesInfo">STD 66</span>, <span class="seriesInfo">RFC 3986</span>, <span class="seriesInfo">DOI 10.17487/RFC3986</span>, <time datetime="2005-01" class="refDate">January 2005</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc3986">https://www.rfc-editor.org/rfc/rfc3986</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC7643">[RFC7643]</dt>
       <dd>
@@ -1846,8 +2143,12 @@ Content-Type: application/scim+json
 <span class="refAuthor">Hunt, P., Ed.</span>, <span class="refAuthor">Grizzle, K.</span>, <span class="refAuthor">Ansari, M.</span>, <span class="refAuthor">Wahlstroem, E.</span>, and <span class="refAuthor">C. Mortimore</span>, <span class="refTitle">"System for Cross-domain Identity Management: Protocol"</span>, <span class="seriesInfo">RFC 7644</span>, <span class="seriesInfo">DOI 10.17487/RFC7644</span>, <time datetime="2015-09" class="refDate">September 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7644">https://www.rfc-editor.org/rfc/rfc7644</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8174">[RFC8174]</dt>
-    <dd>
+      <dd>
 <span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8792">[RFC8792]</dt>
+    <dd>
+<span class="refAuthor">Watsen, K.</span>, <span class="refAuthor">Auerswald, E.</span>, <span class="refAuthor">Farrel, A.</span>, and <span class="refAuthor">Q. Wu</span>, <span class="refTitle">"Handling Long Lines in Content of Internet-Drafts and RFCs"</span>, <span class="seriesInfo">RFC 8792</span>, <span class="seriesInfo">DOI 10.17487/RFC8792</span>, <time datetime="2020-06" class="refDate">June 2020</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8792">https://www.rfc-editor.org/rfc/rfc8792</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
@@ -1858,7 +2159,7 @@ Content-Type: application/scim+json
 <a href="#name-authors-addresses" class="section-name selfRef">Authors' Addresses</a>
       </h2>
 <address class="vcard">
-        <div dir="auto" class="left"><span class="fn nameRole">Anjali Sehgal (<span class="role">editor</span>)</span></div>
+        <div dir="auto" class="left"><span class="fn nameRole">Anjali Sehgal</span></div>
 <div dir="auto" class="left"><span class="org">Amazon Web Services</span></div>
 <div class="email">
 <span>Email:</span>
@@ -1866,11 +2167,11 @@ Content-Type: application/scim+json
 </div>
 </address>
 <address class="vcard">
-        <div dir="auto" class="left"><span class="fn nameRole">Danny Zollner</span></div>
+        <div dir="auto" class="left"><span class="fn nameRole">Danny Zollner (<span class="role">editor</span>)</span></div>
 <div dir="auto" class="left"><span class="org">Microsoft</span></div>
 <div class="email">
 <span>Email:</span>
-<a href="mailto:zollnerd@microsoft.com" class="email">zollnerd@microsoft.com</a>
+<a href="mailto:danny.zollner@microsoft.com" class="email">danny.zollner@microsoft.com</a>
 </div>
 </address>
 </section>
